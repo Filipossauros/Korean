@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #1A1A2E;
+  --vermillion: #C0392B;
+  --gold: #C9A12E;
+  --jade: #2E7D6B;
+  --paper: #F7F6F2;
+  --paper-2: #EFEFEA;
+  --line: #DDDDD5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+/* Safe area support for iPhone notch */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

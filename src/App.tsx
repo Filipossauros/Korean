@@ -6,7 +6,8 @@ import { useBackup } from './hooks/useBackup'
 import { getSessoes, importAllData } from './db'
 import {
   handleGoogleOAuthCallback, consumeOAuthPending, isGoogleConnected,
-  isGoogleConfigured, restoreFromGoogleDrive, disconnectGoogle, initiateGoogleAuth
+  isGoogleConfigured, readConfigFromDrive, restoreProgressFromDrive,
+  disconnectGoogle, initiateGoogleAuth
 } from './api/google-drive'
 import curriculo from './data/ksi_curriculo_completo.json'
 
@@ -81,10 +82,13 @@ export default function App() {
       if (isGoogleConnected()) {
         setStartup('restoring')
         try {
-          const bk = await restoreFromGoogleDrive()
-          if (bk) {
-            await importAllData({ perfil: bk.perfil, sessoes: bk.sessoes })
-            if (bk.anthropic_api_key) localStorage.setItem('anthropic_api_key', bk.anthropic_api_key)
+          // 1. Ficheiro permanente → repõe a chave da API
+          const cfg = await readConfigFromDrive()
+          if (cfg?.anthropic_api_key) localStorage.setItem('anthropic_api_key', cfg.anthropic_api_key)
+          // 2. Ficheiro de progresso → restaura perfil + sessões
+          const prog = await restoreProgressFromDrive()
+          if (prog) {
+            await importAllData({ perfil: prog.perfil, sessoes: prog.sessoes })
             await reload()
             refreshSessoes()
           }

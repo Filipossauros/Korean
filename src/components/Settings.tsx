@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { Perfil, Sessao } from '../types'
-import { initiateGoogleAuth, isGoogleConnected, restoreFromGoogleDrive, backupToGoogleDrive } from '../api/google-drive'
+import {
+  initiateGoogleAuth, isGoogleConnected, saveConfigToDrive,
+  backupProgressToDrive, readConfigFromDrive, restoreProgressFromDrive
+} from '../api/google-drive'
 import { exportAllData, importAllData, getSessoes } from '../db'
 import { SettingsIcon, DriveIcon, DownloadIcon, UploadIcon } from './Icons'
 
@@ -25,11 +28,12 @@ export function Settings({ perfil, onRestore }: Props) {
     localStorage.setItem('show_timer', String(showTimer))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
-    // Empurra logo para o Drive (inclui a chave da API) para um browser novo a recuperar.
+    // Empurra logo para o Drive: ficheiro permanente (chave da API) + progresso.
     if (isGoogleConnected()) {
       try {
+        await saveConfigToDrive()
         const sessoes = await getSessoes()
-        await backupToGoogleDrive(perfil, sessoes)
+        await backupProgressToDrive(perfil, sessoes)
       } catch { /* silencioso */ }
     }
   }
@@ -64,15 +68,18 @@ export function Settings({ perfil, onRestore }: Props) {
     setRestoring(true)
     setMsg('')
     try {
-      const data = await restoreFromGoogleDrive()
-      if (data) {
-        await importAllData({ perfil: data.perfil, sessoes: data.sessoes })
-        if (data.anthropic_api_key) {
-          localStorage.setItem('anthropic_api_key', data.anthropic_api_key)
-          setApiKey(data.anthropic_api_key)
-        }
+      const cfg = await readConfigFromDrive()
+      if (cfg?.anthropic_api_key) {
+        localStorage.setItem('anthropic_api_key', cfg.anthropic_api_key)
+        setApiKey(cfg.anthropic_api_key)
+      }
+      const prog = await restoreProgressFromDrive()
+      if (prog) {
+        await importAllData({ perfil: prog.perfil, sessoes: prog.sessoes })
         setMsg('Dados restaurados do Google Drive!')
         onRestore()
+      } else if (cfg) {
+        setMsg('Configuração restaurada. Ainda não há progresso guardado.')
       } else {
         setMsg('Nenhum backup encontrado no Drive.')
       }

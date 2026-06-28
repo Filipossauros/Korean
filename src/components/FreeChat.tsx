@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { sendFreeChat } from '../api/anthropic'
+import { streamFreeChat } from '../api/anthropic'
 import { MessageIcon, SendIcon } from './Icons'
+import { useSettings } from '../lib/settings'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function FreeChat({ nivel }: Props) {
+  const { model } = useSettings()
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: `안녕하세요! 저는 한국어 선생님이에요. Estou aqui para ajudar com o teu coreano (nível ${nivel}). Podes perguntar sobre gramática, vocabulário, ou praticar conversação. Como posso ajudar?` }
   ])
@@ -32,11 +34,19 @@ export function FreeChat({ nivel }: Props) {
     const newMessages: Message[] = [...messages, { role: 'user', content: text }]
     setMessages(newMessages)
     setLoading(true)
+    // mensagem do assistente que vai sendo preenchida com o streaming
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }])
     try {
-      const reply = await sendFreeChat(newMessages, nivel)
-      setMessages(prev => [...prev, { role: 'assistant', content: reply }])
+      await streamFreeChat(newMessages, nivel, chunk => {
+        setMessages(prev => {
+          const copy = [...prev]
+          copy[copy.length - 1] = { role: 'assistant', content: copy[copy.length - 1].content + chunk }
+          return copy
+        })
+      })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro')
+      setMessages(prev => prev.slice(0, -1)) // remove o placeholder vazio
     } finally {
       setLoading(false)
     }
@@ -45,10 +55,10 @@ export function FreeChat({ nivel }: Props) {
   return (
     <div className="flex flex-col h-screen bg-paper">
       {/* Header */}
-      <div className="px-4 py-4 border-b border-line bg-white flex items-center gap-2">
+      <div className="px-4 py-4 border-b border-line bg-surface flex items-center gap-2">
         <MessageIcon size={20} />
-        <h1 className="font-ui font-semibold text-ink">Conversa livre</h1>
-        <span className="ml-auto text-xs text-ink/30 font-ui">claude-sonnet-4-6</span>
+        <h1 className="font-ui font-semibold text-fg">Conversa livre</h1>
+        <span className="ml-auto text-xs text-fg/30 font-ui">{model}</span>
       </div>
 
       {/* Messages */}
@@ -58,19 +68,12 @@ export function FreeChat({ nivel }: Props) {
             <div className={`max-w-xs md:max-w-md rounded-2xl px-4 py-3 text-sm font-ui whitespace-pre-wrap ${
               m.role === 'user'
                 ? 'bg-vermillion text-white rounded-br-sm'
-                : 'bg-white border border-line text-ink rounded-bl-sm'
+                : 'bg-surface border border-line text-fg rounded-bl-sm'
             }`}>
-              {m.content}
+              {m.content || <span className="text-fg/30 animate-pulse">…</span>}
             </div>
           </div>
         ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-line rounded-2xl rounded-bl-sm px-4 py-3">
-              <span className="text-ink/30 text-sm font-ui animate-pulse">…</span>
-            </div>
-          </div>
-        )}
         {error && (
           <div className="text-center">
             <p className="text-xs text-vermillion font-ui">{error}</p>
@@ -80,14 +83,14 @@ export function FreeChat({ nivel }: Props) {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 md:relative px-4 py-3 bg-white border-t border-line">
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 md:relative px-4 py-3 bg-surface border-t border-line">
         <div className="max-w-2xl mx-auto flex gap-2">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
             placeholder="Escreve aqui…"
-            className="flex-1 rounded-xl border border-line px-3 py-2 text-sm font-ui text-ink focus:outline-none focus:border-gold"
+            className="flex-1 rounded-xl border border-line px-3 py-2 text-sm font-ui text-fg focus:outline-none focus:border-gold"
           />
           <button
             onClick={send}

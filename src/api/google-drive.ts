@@ -19,6 +19,24 @@ export interface ProgressPayload {
   backup_em: string
 }
 
+const SYNCED_KEY = 'progress_synced_at'
+
+export class ProgressConflictError extends Error {
+  remoteTimestamp: string
+  constructor(remoteTimestamp: string) {
+    super('Existe progresso mais recente no Drive (outro dispositivo).')
+    this.name = 'ProgressConflictError'
+    this.remoteTimestamp = remoteTimestamp
+  }
+}
+
+export function getSyncedAt(): string {
+  return localStorage.getItem(SYNCED_KEY) || ''
+}
+function setSyncedAt(ts: string) {
+  localStorage.setItem(SYNCED_KEY, ts)
+}
+
 // O Client ID vem da build (VITE_GOOGLE_CLIENT_ID) para que um browser novo,
 // sem nada no localStorage, consiga iniciar o login. Fallback: localStorage.
 export function getClientId(): string | null {
@@ -151,16 +169,30 @@ export async function readConfigFromDrive(): Promise<ConfigPayload | null> {
 
 // ---------- Ficheiro PROGRESSO (perfil + sessões) ----------
 
-export async function backupProgressToDrive(perfil: Perfil, sessoes: Sessao[]): Promise<void> {
+export async function backupProgressToDrive(perfil: Perfil, sessoes: Sessao[], force = false): Promise<void> {
   const token = getGoogleToken()
   if (!token) return
   const existingId = await findFileId(token, PROGRESS_FILENAME)
+
+  // Deteção de conflito: se o ficheiro remoto é mais recente do que a última
+  // sincronização deste dispositivo, não sobrescrever sem confirmação.
+  if (existingId && !force) {
+    const remote = await readFile<ProgressPayload>(token, PROGRESS_FILENAME)
+    const synced = getSyncedAt()
+    if (remote?.backup_em && synced && remote.backup_em > synced) {
+      throw new ProgressConflictError(remote.backup_em)
+    }
+  }
+
   const payload: ProgressPayload = { perfil, sessoes, backup_em: new Date().toISOString() }
   await uploadFile(token, PROGRESS_FILENAME, payload, existingId)
+  setSyncedAt(payload.backup_em)
 }
 
 export async function restoreProgressFromDrive(): Promise<ProgressPayload | null> {
   const token = getGoogleToken()
   if (!token) return null
-  return readFile<ProgressPayload>(token, PROGRESS_FILENAME)
+  const data = await readFile<ProgressPayload>(token, PROGRESS_FILENAME)
+  if (data?.backup_em) setSyncedAt(data.backup_em)
+  return data
 }

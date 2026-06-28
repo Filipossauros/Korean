@@ -48,3 +48,9 @@ export function FireIcon({ size = 24 }: { size?: number }) {
 export function SendIcon({ size = 24 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" {...s}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
 }
+export function SpeakerIcon({ size = 24 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" {...s}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14"/></svg>
+}
+export function ClockIcon({ size = 24 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+}

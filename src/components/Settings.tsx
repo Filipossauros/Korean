@@ -6,36 +6,48 @@ import {
 } from '../api/google-drive'
 import { exportAllData, importAllData, getSessoes } from '../db'
 import { SettingsIcon, DriveIcon, DownloadIcon, UploadIcon } from './Icons'
+import { useSettings, setSetting } from '../lib/settings'
+import type { Theme, Language, ClaudeModel } from '../lib/settings'
+import { useT } from '../lib/i18n'
+
+const LEVELS = ['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B']
 
 interface Props {
   perfil: Perfil
+  onUpdatePerfil: (updater: (p: Perfil) => Perfil) => void
   onRestore: () => void
 }
 
-export function Settings({ perfil, onRestore }: Props) {
+export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
+  const t = useT()
+  const settings = useSettings()
   const [apiKey, setApiKey] = useState(localStorage.getItem('anthropic_api_key') ?? '')
   const [clientId, setClientId] = useState(localStorage.getItem('google_client_id') ?? '')
-  const [showTimer, setShowTimer] = useState(localStorage.getItem('show_timer') !== 'false')
   const [saved, setSaved] = useState(false)
   const [restoring, setRestoring] = useState(false)
   const [msg, setMsg] = useState('')
+  const conflict = localStorage.getItem('backup_conflict')
 
   const save = async () => {
     if (apiKey.trim()) localStorage.setItem('anthropic_api_key', apiKey.trim())
     else localStorage.removeItem('anthropic_api_key')
     if (clientId.trim()) localStorage.setItem('google_client_id', clientId.trim())
     else localStorage.removeItem('google_client_id')
-    localStorage.setItem('show_timer', String(showTimer))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
-    // Empurra logo para o Drive: ficheiro permanente (chave da API) + progresso.
     if (isGoogleConnected()) {
       try {
         await saveConfigToDrive()
         const sessoes = await getSessoes()
-        await backupProgressToDrive(perfil, sessoes)
+        await backupProgressToDrive(perfil, sessoes, true)
       } catch { /* silencioso */ }
     }
+  }
+
+  const setLevel = (nivel: string) => {
+    const idx = LEVELS.indexOf(nivel)
+    const seguinte = idx >= 0 && idx < LEVELS.length - 1 ? LEVELS[idx + 1] : nivel
+    onUpdatePerfil(p => ({ ...p, nivel_atual: nivel, nivel_seguinte: seguinte }))
   }
 
   const handleExport = async () => {
@@ -49,6 +61,17 @@ export function Settings({ perfil, onRestore }: Props) {
     URL.revokeObjectURL(url)
   }
 
+  const handleExportAnki = () => {
+    const rows = perfil.vocabulario_visto.map(v => `${v.kr}\t${v.pt}`).join('\n')
+    const blob = new Blob([rows], { type: 'text/tab-separated-values' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `hangeul_ilgi_anki_${new Date().toISOString().slice(0, 10)}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -56,7 +79,7 @@ export function Settings({ perfil, onRestore }: Props) {
       const text = await file.text()
       const data = JSON.parse(text) as { perfil: Perfil; sessoes: Sessao[] }
       await importAllData(data)
-      setMsg('Dados importados com sucesso!')
+      setMsg(t('settings.importJson') + ' ✓')
       onRestore()
     } catch {
       setMsg('Erro ao importar ficheiro.')
@@ -76,6 +99,7 @@ export function Settings({ perfil, onRestore }: Props) {
       const prog = await restoreProgressFromDrive()
       if (prog) {
         await importAllData({ perfil: prog.perfil, sessoes: prog.sessoes })
+        localStorage.removeItem('backup_conflict')
         setMsg('Dados restaurados do Google Drive!')
         onRestore()
       } else if (cfg) {
@@ -90,52 +114,137 @@ export function Settings({ perfil, onRestore }: Props) {
     }
   }
 
+  const forcePush = async () => {
+    setMsg('')
+    try {
+      const sessoes = await getSessoes()
+      await backupProgressToDrive(perfil, sessoes, true)
+      localStorage.removeItem('backup_conflict')
+      setMsg('Progresso deste dispositivo gravado no Drive.')
+    } catch (err) {
+      setMsg(`Erro: ${err instanceof Error ? err.message : err}`)
+    }
+  }
+
+  const card = 'bg-surface rounded-2xl p-4 border border-line'
+  const label = 'font-ui text-sm font-semibold text-fg block mb-2'
+
   return (
     <div className="min-h-screen bg-paper pb-24 md:pb-0">
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="flex items-center gap-2 mb-6">
           <SettingsIcon size={20} />
-          <h1 className="font-ui font-semibold text-ink">Definições</h1>
+          <h1 className="font-ui font-semibold text-fg">{t('settings.title')}</h1>
         </div>
 
         <div className="space-y-4">
+          {/* Conflito de backup */}
+          {conflict && (
+            <div className="bg-gold/10 border border-gold/30 rounded-2xl p-4">
+              <p className="font-ui text-sm text-fg mb-2">
+                ⚠️ Há progresso mais recente no Drive (outro dispositivo), de {new Date(conflict).toLocaleString()}.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={handleRestore} className="px-3 py-2 rounded-xl bg-jade text-white font-ui text-xs">Trazer do Drive</button>
+                <button onClick={forcePush} className="px-3 py-2 rounded-xl border border-line text-fg font-ui text-xs">Manter este dispositivo</button>
+              </div>
+            </div>
+          )}
+
+          {/* Aparência */}
+          <div className={card}>
+            <span className={label}>{t('settings.theme')}</span>
+            <div className="grid grid-cols-3 gap-2">
+              {(['system', 'light', 'dark'] as Theme[]).map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setSetting('theme', opt)}
+                  className={`py-2 rounded-xl font-ui text-sm border ${settings.theme === opt ? 'bg-ink text-white border-ink' : 'border-line text-fg/60'}`}
+                >
+                  {opt === 'system' ? t('settings.themeSystem') : opt === 'light' ? t('settings.themeLight') : t('settings.themeDark')}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Idioma de aprendizagem */}
+          <div className={card}>
+            <span className={label}>{t('settings.language')}</span>
+            <div className="grid grid-cols-2 gap-2">
+              {(['pt', 'en'] as Language[]).map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setSetting('language', opt)}
+                  className={`py-2 rounded-xl font-ui text-sm border ${settings.language === opt ? 'bg-ink text-white border-ink' : 'border-line text-fg/60'}`}
+                >
+                  {opt === 'pt' ? 'Português' : 'English'}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-fg/40 font-ui mt-2">As sessões e correções passam a usar este idioma.</p>
+          </div>
+
+          {/* Nível */}
+          <div className={card}>
+            <span className={label}>{t('settings.currentLevel')}</span>
+            <div className="grid grid-cols-4 gap-2">
+              {LEVELS.map(lv => (
+                <button
+                  key={lv}
+                  onClick={() => setLevel(lv)}
+                  className={`py-2 rounded-xl font-serif text-sm border ${perfil.nivel_atual === lv ? 'bg-vermillion text-white border-vermillion' : 'border-line text-fg/60'}`}
+                >
+                  {lv}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-fg/40 font-ui mt-2">Muda de onde saem as sessões. O progresso é mantido.</p>
+          </div>
+
+          {/* Modelo */}
+          <div className={card}>
+            <span className={label}>{t('settings.model')}</span>
+            <select
+              value={settings.model}
+              onChange={e => setSetting('model', e.target.value as ClaudeModel)}
+              className="w-full rounded-xl border border-line bg-surface px-3 py-2 font-ui text-sm text-fg focus:outline-none focus:border-gold"
+            >
+              <option value="claude-sonnet-4-6">Sonnet 4.6 (equilíbrio)</option>
+              <option value="claude-opus-4-8">Opus 4.8 (melhor qualidade)</option>
+              <option value="claude-haiku-4-5-20251001">Haiku 4.5 (mais rápido/barato)</option>
+            </select>
+          </div>
+
           {/* API Key */}
-          <div className="bg-white rounded-2xl p-4 border border-line">
-            <label className="font-ui text-sm font-semibold text-ink block mb-2">Anthropic API Key</label>
+          <div className={card}>
+            <label className={label}>{t('settings.apiKey')}</label>
             <input
               type="password"
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
               placeholder="sk-ant-…"
-              className="w-full rounded-xl border border-line px-3 py-2 font-ui text-sm text-ink focus:outline-none focus:border-gold"
+              className="w-full rounded-xl border border-line bg-surface px-3 py-2 font-ui text-sm text-fg focus:outline-none focus:border-gold"
             />
-            <p className="text-xs text-ink/30 font-ui mt-1">Guardada apenas localmente. Nunca enviada a terceiros.</p>
+            <p className="text-xs text-fg/30 font-ui mt-1">{t('settings.apiKeyHint')}</p>
           </div>
 
           {/* Google Drive */}
-          <div className="bg-white rounded-2xl p-4 border border-line">
-            <label className="font-ui text-sm font-semibold text-ink block mb-2">Google Drive</label>
+          <div className={card}>
+            <label className={label}>Google Drive</label>
             <input
               type="text"
               value={clientId}
               onChange={e => setClientId(e.target.value)}
               placeholder="Google OAuth Client ID"
-              className="w-full rounded-xl border border-line px-3 py-2 font-ui text-sm text-ink focus:outline-none focus:border-gold mb-3"
+              className="w-full rounded-xl border border-line bg-surface px-3 py-2 font-ui text-sm text-fg focus:outline-none focus:border-gold mb-3"
             />
             <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={() => initiateGoogleAuth()}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-jade text-white font-ui text-sm"
-              >
+              <button onClick={() => initiateGoogleAuth()} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-jade text-white font-ui text-sm">
                 <DriveIcon size={16} />
                 {isGoogleConnected() ? 'Drive ligado ✓' : 'Ligar Google Drive'}
               </button>
               {isGoogleConnected() && (
-                <button
-                  onClick={handleRestore}
-                  disabled={restoring}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-ink"
-                >
+                <button onClick={handleRestore} disabled={restoring} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg">
                   <DownloadIcon size={16} />
                   {restoring ? 'A restaurar…' : 'Restaurar backup'}
                 </button>
@@ -143,43 +252,38 @@ export function Settings({ perfil, onRestore }: Props) {
             </div>
           </div>
 
-          {/* Timer toggle */}
-          <div className="bg-white rounded-2xl p-4 border border-line flex items-center justify-between">
-            <div>
-              <p className="font-ui text-sm font-semibold text-ink">Cronómetro</p>
-              <p className="text-xs text-ink/40 font-ui">Mostrar tempo em cada parte da sessão</p>
+          {/* Toggles */}
+          <div className={card}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-ui text-sm font-semibold text-fg">{t('settings.romanization')}</p>
+                <p className="text-xs text-fg/40 font-ui">{t('settings.romanizationHint')}</p>
+              </div>
+              <Toggle on={settings.romanization} onClick={() => setSetting('romanization', !settings.romanization)} />
             </div>
-            <button
-              onClick={() => setShowTimer(t => !t)}
-              className={`w-12 h-6 rounded-full transition-all relative ${showTimer ? 'bg-jade' : 'bg-line'}`}
-            >
-              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${showTimer ? 'left-6' : 'left-0.5'}`} />
-            </button>
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-line">
+              <div>
+                <p className="font-ui text-sm font-semibold text-fg">{t('settings.timer')}</p>
+                <p className="text-xs text-fg/40 font-ui">{t('settings.timerHint')}</p>
+              </div>
+              <Toggle on={settings.showTimer} onClick={() => setSetting('showTimer', !settings.showTimer)} />
+            </div>
           </div>
 
-          {/* Nível info */}
-          <div className="bg-white rounded-2xl p-4 border border-line">
-            <p className="font-ui text-sm font-semibold text-ink mb-2">Nível actual</p>
-            <p className="font-serif text-2xl text-ink">{perfil.nivel_atual} <span className="text-ink/30">→</span> {perfil.nivel_seguinte}</p>
-            <p className="text-xs text-ink/40 font-ui mt-1">KSI Lisboa nível 5 → 6</p>
-          </div>
-
-          {/* Export / Import */}
-          <div className="bg-white rounded-2xl p-4 border border-line">
-            <p className="font-ui text-sm font-semibold text-ink mb-3">Dados locais</p>
+          {/* Dados */}
+          <div className={card}>
+            <p className="font-ui text-sm font-semibold text-fg mb-3">{t('settings.localData')}</p>
             <div className="flex gap-2 flex-wrap">
-              <button
-                onClick={handleExport}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-ink"
-              >
-                <UploadIcon size={16} />
-                Exportar JSON
+              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg">
+                <UploadIcon size={16} /> {t('settings.exportJson')}
               </button>
-              <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-ink cursor-pointer">
-                <DownloadIcon size={16} />
-                Importar JSON
+              <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg cursor-pointer">
+                <DownloadIcon size={16} /> {t('settings.importJson')}
                 <input type="file" accept=".json" className="hidden" onChange={handleImport} />
               </label>
+              <button onClick={handleExportAnki} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg">
+                <UploadIcon size={16} /> {t('settings.exportAnki')}
+              </button>
             </div>
           </div>
 
@@ -189,14 +293,19 @@ export function Settings({ perfil, onRestore }: Props) {
             </div>
           )}
 
-          <button
-            onClick={save}
-            className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold"
-          >
-            {saved ? 'Guardado ✓' : 'Guardar definições'}
+          <button onClick={save} className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold">
+            {saved ? t('common.saved') : t('common.save')}
           </button>
         </div>
       </div>
     </div>
+  )
+}
+
+function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${on ? 'bg-jade' : 'bg-line'}`}>
+      <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${on ? 'left-6' : 'left-0.5'}`} />
+    </button>
   )
 }

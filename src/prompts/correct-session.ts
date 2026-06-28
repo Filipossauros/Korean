@@ -1,7 +1,8 @@
 import type { Sessao } from '../types'
 
-export function correctSessionPrompt(sessao: Sessao): string {
+export function correctSessionPrompt(sessao: Sessao, langName: string): string {
   return `És um professor de coreano. Corrige as traduções do utilizador com rigor pedagógico.
+A língua de apoio é ${langName} — escreve TODAS as notas, correções e explicações em ${langName}.
 
 PARTE 1 — LEITURA (KO→PT):
 Texto original: ${sessao.parte1.texto_kr}
@@ -35,8 +36,9 @@ Responde APENAS em JSON sem markdown (sem \`\`\`):
 }`
 }
 
-export function correctFreeWritingPrompt(tema: string, texto: string, nivel: string): string {
+export function correctFreeWritingPrompt(tema: string, texto: string, nivel: string, langName: string): string {
   return `És um professor de coreano de nível ${nivel} (KSI). O utilizador escreveu livremente sobre o tema: "${tema}".
+A língua de apoio é ${langName} — escreve as notas e feedback em ${langName}.
 
 TEXTO DO UTILIZADOR:
 ${texto}

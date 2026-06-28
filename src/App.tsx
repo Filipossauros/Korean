@@ -22,6 +22,9 @@ import { FreeChat } from './components/FreeChat'
 import { Settings } from './components/Settings'
 import { Welcome } from './components/Welcome'
 import { LoadingOverlay } from './components/LoadingOverlay'
+import { SessionDetail } from './components/SessionDetail'
+import { useT } from './lib/i18n'
+import { useSettings } from './lib/settings'
 import {
   HomeIcon, LayersIcon, BarChartIcon, MessageIcon, SettingsIcon
 } from './components/Icons'
@@ -58,14 +61,15 @@ function getUnidade(nivel: string): UnidadeKSI {
 export default function App() {
   const [view, setView] = useState<AppView>('dashboard')
   const [sessoes, setSessoes] = useState<Sessao[]>([])
+  const [detailSession, setDetailSession] = useState<Sessao | null>(null)
   const { perfil, setPerfil, loading, reload } = useProfile()
   const session = useSession()
   const { backup } = useBackup()
+  const t = useT()
+  const { showTimer } = useSettings()
   const [corrLoading, setCorrLoading] = useState(false)
   const [startup, setStartup] = useState<'init' | 'welcome' | 'restoring' | 'ready'>('init')
   const startupRan = useRef(false)
-
-  const showTimer = localStorage.getItem('show_timer') !== 'false'
 
   const refreshSessoes = useCallback(() => { getSessoes().then(setSessoes) }, [])
   useEffect(() => { refreshSessoes() }, [refreshSessoes])
@@ -161,8 +165,8 @@ export default function App() {
 
   const showPart3 = perfil.sessoes_realizadas > 0 && (perfil.sessoes_realizadas + 1) % 3 === 0
 
-  if (loading || startup === 'init') return <LoadingOverlay message="A carregar…" />
-  if (startup === 'restoring') return <LoadingOverlay message="A verificar progresso no Google Drive…" />
+  if (loading || startup === 'init') return <LoadingOverlay message={t('common.loading')} />
+  if (startup === 'restoring') return <LoadingOverlay message="Google Drive…" />
   if (startup === 'welcome') {
     return (
       <Welcome
@@ -177,7 +181,7 @@ export default function App() {
   const renderContent = () => {
     switch (view) {
       case 'dashboard':
-        return <Dashboard perfil={perfil} sessoes={sessoes} onStart={handleStartSession} onNav={v => setView(v as AppView)} />
+        return <Dashboard perfil={perfil} sessoes={sessoes} onStart={handleStartSession} onNav={v => setView(v as AppView)} onOpenSession={s => { setDetailSession(s); setView('session-detail') }} />
       case 'session-reading':
         return session.draft ? (
           <SessionReading
@@ -218,18 +222,22 @@ export default function App() {
       case 'free-chat':
         return <FreeChat nivel={perfil.nivel_atual} />
       case 'settings':
-        return <Settings perfil={perfil} onRestore={refreshSessoes} />
+        return <Settings perfil={perfil} onUpdatePerfil={setPerfil} onRestore={() => { reload(); refreshSessoes() }} />
+      case 'session-detail':
+        return detailSession ? (
+          <SessionDetail sessao={detailSession} onBack={() => { setDetailSession(null); setView('dashboard') }} />
+        ) : null
       default:
         return null
     }
   }
 
   const tabs = [
-    { id: 'dashboard', label: 'Início', Icon: HomeIcon },
-    { id: 'vocabulary', label: 'Vocab', Icon: LayersIcon },
-    { id: 'progress', label: 'Progresso', Icon: BarChartIcon },
-    { id: 'free-chat', label: 'Chat', Icon: MessageIcon },
-    { id: 'settings', label: 'Definições', Icon: SettingsIcon },
+    { id: 'dashboard', label: t('nav.home'), Icon: HomeIcon },
+    { id: 'vocabulary', label: t('nav.vocabShort'), Icon: LayersIcon },
+    { id: 'progress', label: t('nav.progress'), Icon: BarChartIcon },
+    { id: 'free-chat', label: t('nav.chatShort'), Icon: MessageIcon },
+    { id: 'settings', label: t('nav.settings'), Icon: SettingsIcon },
   ] as const
 
   return (
@@ -242,17 +250,17 @@ export default function App() {
         </div>
         <nav className="space-y-1 flex-1">
           {[
-            { id: 'dashboard', label: 'Início', Icon: HomeIcon },
-            { id: 'vocabulary', label: 'Vocabulário', Icon: LayersIcon },
-            { id: 'progress', label: 'Progresso', Icon: BarChartIcon },
-            { id: 'free-chat', label: 'Conversa', Icon: MessageIcon },
-            { id: 'settings', label: 'Definições', Icon: SettingsIcon },
+            { id: 'dashboard', label: t('nav.home'), Icon: HomeIcon },
+            { id: 'vocabulary', label: t('nav.vocab'), Icon: LayersIcon },
+            { id: 'progress', label: t('nav.progress'), Icon: BarChartIcon },
+            { id: 'free-chat', label: t('nav.chat'), Icon: MessageIcon },
+            { id: 'settings', label: t('nav.settings'), Icon: SettingsIcon },
           ].map(({ id, label, Icon }) => (
             <button
               key={id}
               onClick={() => setView(id as AppView)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-ui text-sm transition-all ${
-                view === id ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                view === id ? 'bg-surface/10 text-white' : 'text-white/50 hover:text-white/80 hover:bg-surface/5'
               }`}
             >
               <Icon size={18} />
@@ -264,7 +272,7 @@ export default function App() {
           onClick={handleStartSession}
           className="mx-3 py-3 rounded-xl bg-vermillion text-white font-ui text-sm font-semibold active:scale-95 transition-all"
         >
-          Sessão de hoje
+          {t('nav.todaySession')}
         </button>
       </aside>
 
@@ -275,19 +283,19 @@ export default function App() {
             <p className="text-vermillion text-sm font-ui">{session.error}</p>
           </div>
         )}
-        {session.phase === 'generating' && <LoadingOverlay message="A gerar sessão com IA…" />}
+        {session.phase === 'generating' && <LoadingOverlay message={t('session.generating')} />}
         {renderContent()}
       </main>
 
       {/* Mobile bottom tab bar */}
       {!isSessionActive && (
-        <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-line flex z-40 pb-safe">
+        <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-surface border-t border-line flex z-40 pb-safe">
           {tabs.map(({ id, label, Icon }) => (
             <button
               key={id}
               onClick={() => setView(id as AppView)}
               className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-all ${
-                view === id ? 'text-vermillion' : 'text-ink/30'
+                view === id ? 'text-vermillion' : 'text-fg/30'
               }`}
             >
               <Icon size={22} />
@@ -301,9 +309,9 @@ export default function App() {
       {isSessionActive && (
         <button
           onClick={() => { session.reset(); setView('dashboard') }}
-          className="fixed top-4 left-4 z-50 md:hidden bg-white border border-line rounded-xl px-3 py-1.5 text-xs font-ui text-ink/60 shadow-sm"
+          className="fixed top-4 left-4 z-50 md:hidden bg-surface border border-line rounded-xl px-3 py-1.5 text-xs font-ui text-fg/60 shadow-sm"
         >
-          ← Sair
+          {t('common.back')}
         </button>
       )}
     </div>

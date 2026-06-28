@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { VocabItem, Perfil } from '../types'
-import { LayersIcon, CheckIcon, XIcon } from './Icons'
+import { LayersIcon, CheckIcon, XIcon, SpeakerIcon } from './Icons'
+import { speakKorean, canSpeak } from '../lib/tts'
+import { romanize } from '../lib/romanize'
+import { useSettings } from '../lib/settings'
 
 interface Props {
   perfil: Perfil
@@ -16,6 +19,7 @@ function getNextReview(nivel: 1 | 2 | 3): string {
 }
 
 export function Vocabulary({ perfil, onUpdate }: Props) {
+  const { romanization } = useSettings()
   const today = new Date().toISOString().slice(0, 10)
   const due = perfil.vocabulario_visto.filter(v => v.srs_proxima_revisao <= today)
   const [idx, setIdx] = useState(0)
@@ -25,7 +29,7 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
   if (perfil.vocabulario_visto.length === 0) {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center">
-        <div className="text-center text-ink/30">
+        <div className="text-center text-fg/30">
           <LayersIcon size={40} />
           <p className="font-ui mt-3">Nenhum vocabulário ainda</p>
           <p className="text-sm font-ui mt-1">Faz uma sessão para começar a aprender palavras</p>
@@ -39,17 +43,17 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
       <div className="min-h-screen bg-paper flex items-center justify-center">
         <div className="text-center px-6">
           <div className="text-jade mb-3"><CheckIcon size={40} /></div>
-          <h2 className="font-ui font-semibold text-ink text-xl">Tudo em dia!</h2>
-          <p className="text-ink/50 font-ui mt-1 text-sm">
+          <h2 className="font-ui font-semibold text-fg text-xl">Tudo em dia!</h2>
+          <p className="text-fg/50 font-ui mt-1 text-sm">
             {due.length === 0 ? 'Sem cartões para hoje.' : `Revisaste ${due.length} cartões.`}
           </p>
-          <div className="mt-6 text-left bg-white rounded-2xl p-4 border border-line max-w-xs mx-auto">
-            <p className="text-xs text-ink/40 font-ui uppercase tracking-wide mb-3">Todo o vocabulário</p>
+          <div className="mt-6 text-left bg-surface rounded-2xl p-4 border border-line max-w-xs mx-auto">
+            <p className="text-xs text-fg/40 font-ui uppercase tracking-wide mb-3">Todo o vocabulário</p>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {perfil.vocabulario_visto.map(v => (
                 <div key={v.kr} className="flex justify-between text-sm">
-                  <span className="font-serif text-ink">{v.kr}</span>
-                  <span className="text-ink/50 font-ui">{v.pt}</span>
+                  <span className="font-serif text-fg">{v.kr}</span>
+                  <span className="text-fg/50 font-ui">{v.pt}</span>
                   <span className={`text-xs font-ui ${v.srs_nivel === 3 ? 'text-jade' : v.srs_nivel === 2 ? 'text-gold' : 'text-vermillion'}`}>
                     N{v.srs_nivel}
                   </span>
@@ -95,9 +99,9 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <LayersIcon size={20} />
-            <h1 className="font-ui font-semibold text-ink">Vocabulário SRS</h1>
+            <h1 className="font-ui font-semibold text-fg">Vocabulário SRS</h1>
           </div>
-          <span className="text-sm text-ink/40 font-ui">{idx + 1}/{due.length}</span>
+          <span className="text-sm text-fg/40 font-ui">{idx + 1}/{due.length}</span>
         </div>
 
         <div className="w-full h-1 bg-line rounded-full mb-8">
@@ -106,24 +110,31 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
 
         {/* Card */}
         <div
-          className="bg-white rounded-3xl border border-line shadow-sm p-8 text-center cursor-pointer select-none mb-6 min-h-48 flex flex-col justify-center"
+          className="bg-surface rounded-3xl border border-line shadow-sm p-8 text-center cursor-pointer select-none mb-6 min-h-48 flex flex-col justify-center"
           onClick={() => setFlipped(f => !f)}
         >
           {!flipped ? (
             <>
-              <p className="font-serif text-5xl text-ink mb-4">{card.kr}</p>
-              <p className="text-xs text-ink/30 font-ui">toca para ver</p>
+              <p className="font-serif text-5xl text-fg mb-2">{card.kr}</p>
+              {romanization && <p className="text-sm text-fg/40 italic mb-2">{romanize(card.kr)}</p>}
+              {canSpeak() && (
+                <button onClick={e => { e.stopPropagation(); speakKorean(card.kr) }} className="text-fg/30 hover:text-jade mx-auto mb-2" title="Ouvir">
+                  <SpeakerIcon size={22} />
+                </button>
+              )}
+              <p className="text-xs text-fg/30 font-ui">toca para ver</p>
             </>
           ) : (
             <>
-              <p className="font-serif text-3xl text-ink mb-2">{card.pt}</p>
-              <p className="font-serif text-xl text-ink/40 mb-3">{card.kr}</p>
+              <p className="font-serif text-3xl text-fg mb-2">{card.pt}</p>
+              <p className="font-serif text-xl text-fg/40 mb-1">{card.kr}</p>
+              {romanization && <p className="text-xs text-fg/40 italic mb-3">{romanize(card.kr)}</p>}
               <div className="flex gap-2 justify-center mt-2">
                 <span className={`text-xs px-2 py-0.5 rounded font-ui ${
                   card.srs_nivel === 3 ? 'bg-jade/10 text-jade' :
                   card.srs_nivel === 2 ? 'bg-gold/10 text-gold' : 'bg-vermillion/10 text-vermillion'
                 }`}>N{card.srs_nivel}</span>
-                <span className="text-xs text-ink/30 font-ui">visto {card.vezes_visto}×</span>
+                <span className="text-xs text-fg/30 font-ui">visto {card.vezes_visto}×</span>
               </div>
             </>
           )}

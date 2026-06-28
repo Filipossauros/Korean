@@ -101,6 +101,7 @@ export interface SessionDraft {
 
 export type AppView =
   | 'dashboard'
+  | 'session-detail'
   | 'session-reading'
   | 'session-writing'
   | 'session-correction'

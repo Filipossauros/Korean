@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import type { FraseProducao } from '../types'
-import { PencilIcon, CameraIcon } from './Icons'
+import { PencilIcon, CameraIcon, SpeakerIcon } from './Icons'
+import { recognizeHangulWithClaude } from '../api/anthropic'
+import { speakKorean, canSpeak } from '../lib/tts'
+import { romanize } from '../lib/romanize'
+import { useSettings } from '../lib/settings'
+import { useT } from '../lib/i18n'
 
 interface Props {
   frases: FraseProducao[]
@@ -9,11 +14,14 @@ interface Props {
 }
 
 export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
+  const t = useT()
+  const { romanization } = useSettings()
   const [respostas, setRespostas] = useState<string[]>(frases.map(() => ''))
   const [current, setCurrent] = useState(0)
   const [showDicas, setShowDicas] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrError, setOcrError] = useState('')
   const startRef = useRef(Date.now())
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -31,14 +39,14 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     setOcrLoading(true)
+    setOcrError('')
     try {
-      const { default: Tesseract } = await import('tesseract.js')
-      const { data: { text } } = await Tesseract.recognize(file, 'kor')
+      const text = await recognizeHangulWithClaude(file)
       const next = [...respostas]
-      next[current] = text.trim()
+      next[current] = text
       setRespostas(next)
     } catch (err) {
-      console.error('OCR error:', err)
+      setOcrError(err instanceof Error ? err.message : 'Erro ao ler imagem')
     } finally {
       setOcrLoading(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -61,11 +69,11 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <PencilIcon size={20} />
-            <h1 className="font-ui font-semibold text-ink">Produção · Parte 2</h1>
+            <h1 className="font-ui font-semibold text-fg">{t('session.production')}</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-ui text-sm text-ink/40">{current + 1}/{frases.length}</span>
-            {showTimer && <span className="font-ui text-sm text-ink/40 tabular-nums">{fmt(elapsed)}</span>}
+            <span className="font-ui text-sm text-fg/40">{current + 1}/{frases.length}</span>
+            {showTimer && <span className="font-ui text-sm text-fg/40 tabular-nums">{fmt(elapsed)}</span>}
           </div>
         </div>
 
@@ -78,11 +86,11 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
         </div>
 
         {/* Current sentence */}
-        <div className="bg-white rounded-2xl p-5 mb-4 border border-line">
-          <p className="font-ui text-xs uppercase tracking-wider text-ink/50 mb-2">Traduz para coreano:</p>
-          <p className="font-ui text-xl font-medium text-ink">{frase.pt_original}</p>
+        <div className="bg-surface rounded-2xl p-5 mb-4 border border-line">
+          <p className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-2">{t('session.translateToKorean')}</p>
+          <p className="font-ui text-xl font-medium text-fg">{frase.pt_original}</p>
           {frase.estrutura_foco && (
-            <p className="text-xs text-gold font-ui mt-2">Foco: {frase.estrutura_foco}</p>
+            <p className="text-xs text-gold font-ui mt-2">{t('session.focus')}: {frase.estrutura_foco}</p>
           )}
         </div>
 
@@ -91,9 +99,9 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
           <div className="mb-4">
             <button
               onClick={() => setShowDicas(d => !d)}
-              className="text-xs text-ink/40 font-ui underline"
+              className="text-xs text-fg/40 font-ui underline"
             >
-              {showDicas ? 'Esconder dicas' : 'Mostrar dicas'}
+              {showDicas ? t('session.hideHints') : t('session.showHints')}
             </button>
             {showDicas && (
               <div className="mt-2 flex flex-wrap gap-2">
@@ -116,18 +124,33 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
             }}
             rows={3}
             placeholder="한국어로 쓰세요…"
-            className="w-full rounded-xl border border-line bg-white p-3 pr-12 font-serif text-lg text-ink focus:outline-none focus:border-gold resize-none"
+            className="w-full rounded-xl border border-line bg-surface p-3 pr-12 font-serif text-lg text-fg focus:outline-none focus:border-gold resize-none"
             lang="ko"
           />
-          <button
-            onClick={() => fileRef.current?.click()}
-            disabled={ocrLoading}
-            className="absolute right-3 bottom-3 text-ink/30 hover:text-ink/60 transition-colors"
-            title="Foto de manuscrito"
-          >
-            {ocrLoading ? <span className="text-xs font-ui">OCR…</span> : <CameraIcon size={20} />}
-          </button>
+          <div className="absolute right-3 bottom-3 flex items-center gap-2">
+            {canSpeak() && respostas[current]?.trim() && (
+              <button
+                onClick={() => speakKorean(respostas[current])}
+                className="text-fg/30 hover:text-jade transition-colors"
+                title="Ouvir"
+              >
+                <SpeakerIcon size={20} />
+              </button>
+            )}
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={ocrLoading}
+              className="text-fg/30 hover:text-fg/60 transition-colors"
+              title="Foto de manuscrito"
+            >
+              {ocrLoading ? <span className="text-xs font-ui">OCR…</span> : <CameraIcon size={20} />}
+            </button>
+          </div>
         </div>
+        {romanization && respostas[current]?.trim() && (
+          <p className="text-xs text-fg/40 font-ui -mt-2 mb-4 italic">{romanize(respostas[current])}</p>
+        )}
+        {ocrError && <p className="text-xs text-vermillion font-ui -mt-2 mb-4">{ocrError}</p>}
 
         <input
           ref={fileRef}
@@ -145,7 +168,7 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
               onClick={next}
               className="flex-1 py-4 rounded-2xl bg-ink text-white font-ui font-semibold active:scale-95 transition-all"
             >
-              Próxima frase →
+              {t('session.nextSentence')}
             </button>
           ) : (
             <button
@@ -153,7 +176,7 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
               disabled={!allAnswered}
               className="flex-1 py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold disabled:opacity-40 active:scale-95 transition-all"
             >
-              Submeter todas
+              {t('session.submitAll')}
             </button>
           )}
         </div>
@@ -165,14 +188,14 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
               key={i}
               onClick={() => setCurrent(i)}
               className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                i === current ? 'border-gold bg-gold/5' : 'border-line bg-white'
+                i === current ? 'border-gold bg-gold/5' : 'border-line bg-surface'
               }`}
             >
-              <p className="text-xs text-ink/50 font-ui">{f.pt_original}</p>
+              <p className="text-xs text-fg/50 font-ui">{f.pt_original}</p>
               {respostas[i] ? (
-                <p className="text-sm font-serif text-ink mt-1">{respostas[i]}</p>
+                <p className="text-sm font-serif text-fg mt-1">{respostas[i]}</p>
               ) : (
-                <p className="text-xs text-ink/20 font-ui mt-1">—</p>
+                <p className="text-xs text-fg/20 font-ui mt-1">—</p>
               )}
             </div>
           ))}

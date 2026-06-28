@@ -39,12 +39,12 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="flex items-center gap-2 mb-6">
           <PencilIcon size={20} />
-          <h1 className="font-ui font-semibold text-ink">Escrita livre · Parte 3</h1>
+          <h1 className="font-ui font-semibold text-fg">Escrita livre · Parte 3</h1>
         </div>
 
         <div className="bg-gold/10 rounded-2xl p-4 border border-gold/20 mb-6">
           <p className="text-xs text-gold font-ui uppercase tracking-wide mb-1">Tema</p>
-          <p className="font-serif text-lg text-ink">{tema}</p>
+          <p className="font-serif text-lg text-fg">{tema}</p>
         </div>
 
         {!result ? (
@@ -54,7 +54,7 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
               onChange={e => setTexto(e.target.value)}
               rows={8}
               placeholder="한국어로 자유롭게 쓰세요…"
-              className="w-full rounded-xl border border-line bg-white p-4 font-serif text-lg text-ink focus:outline-none focus:border-gold resize-none mb-4"
+              className="w-full rounded-xl border border-line bg-surface p-4 font-serif text-lg text-fg focus:outline-none focus:border-gold resize-none mb-4"
               lang="ko"
             />
             {error && <p className="text-vermillion text-sm font-ui mb-3">{error}</p>}
@@ -75,14 +75,14 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
             </div>
 
             {/* Corrected text */}
-            <div className="bg-white rounded-2xl p-4 border border-line">
-              <p className="text-xs text-ink/40 font-ui mb-2">Texto corrigido:</p>
-              <p className="font-serif text-base text-ink">{result.correcao}</p>
+            <div className="bg-surface rounded-2xl p-4 border border-line">
+              <p className="text-xs text-fg/40 font-ui mb-2">Texto corrigido:</p>
+              <p className="font-serif text-base text-fg">{result.correcao}</p>
             </div>
 
             {/* Structures used spontaneously */}
             {result.estruturas_espontaneas.length > 0 && (
-              <div className="bg-white rounded-2xl p-4 border border-jade/30">
+              <div className="bg-surface rounded-2xl p-4 border border-jade/30">
                 <p className="text-xs text-jade font-ui uppercase tracking-wide mb-2">Estruturas espontâneas ✓</p>
                 <div className="flex flex-wrap gap-2">
                   {result.estruturas_espontaneas.map(e => (
@@ -94,15 +94,15 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
 
             {/* Errors */}
             {result.erros.length > 0 && (
-              <div className="bg-white rounded-2xl p-4 border border-line">
-                <p className="text-xs text-ink/40 font-ui mb-3">Correções:</p>
+              <div className="bg-surface rounded-2xl p-4 border border-line">
+                <p className="text-xs text-fg/40 font-ui mb-3">Correções:</p>
                 <div className="space-y-2">
                   {result.erros.map((e, i) => (
                     <div key={i} className="text-sm">
                       <span className="line-through text-vermillion font-serif">{e.original}</span>
                       {' → '}
                       <span className="text-jade font-serif">{e.correcto}</span>
-                      {e.nota && <p className="text-xs text-ink/40 font-ui mt-0.5">{e.nota}</p>}
+                      {e.nota && <p className="text-xs text-fg/40 font-ui mt-0.5">{e.nota}</p>}
                     </div>
                   ))}
                 </div>

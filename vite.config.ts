@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // Servido em https://<user>.github.io/Korean/ — o nome do repositório é o base path.
+  base: '/Korean/',
   plugins: [
     react(),
     VitePWA({

@@ -1,20 +1,12 @@
 import type { Sessao } from '../types'
 import { CheckIcon, XIcon } from './Icons'
+import { useT } from '../lib/i18n'
 
 interface Props {
   sessao: Sessao
   showPart3Option: boolean
   onContinue: (doPart3: boolean) => void
   loading?: boolean
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  'partícula': 'Partícula',
-  'vocabulário': 'Vocabulário',
-  'gramática': 'Gramática',
-  'tempo_verbal': 'Tempo verbal',
-  'registo': 'Registo',
-  'ordem_palavras': 'Ordem',
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -27,6 +19,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 export function SessionCorrection({ sessao, showPart3Option, onContinue, loading }: Props) {
+  const t = useT()
   const total = sessao.parte1.pontuacao + sessao.parte2.pontuacao
   const pct = Math.round((total / 20) * 100)
 
@@ -48,15 +41,15 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
         {/* Part 1 correction */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="font-ui font-semibold text-fg">Leitura</h2>
+            <h2 className="font-ui font-semibold text-fg">{t('corr.readingShort')}</h2>
             <span className="font-ui text-sm font-bold text-fg">{sessao.parte1.pontuacao}/10</span>
           </div>
           <div className="bg-surface rounded-2xl p-4 border border-line">
-            <p className="text-xs text-fg/40 font-ui mb-1">A tua tradução:</p>
+            <p className="text-xs text-fg/40 font-ui mb-1">{t('corr.yourTranslation')}</p>
             <p className="font-ui text-sm text-fg mb-3">{sessao.parte1.traducao_utilizador || '—'}</p>
             {sessao.parte1.traducao_referencia && (
               <>
-                <p className="text-xs text-fg/40 font-ui mb-1">Tradução de referência:</p>
+                <p className="text-xs text-fg/40 font-ui mb-1">{t('corr.reference')}</p>
                 <p className="font-ui text-sm text-jade">{sessao.parte1.traducao_referencia}</p>
               </>
             )}
@@ -65,7 +58,7 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
                 {sessao.parte1.erros.map((e, i) => (
                   <div key={i} className="flex gap-2 items-start text-xs">
                     <span className={`px-2 py-0.5 rounded-lg font-ui shrink-0 ${CATEGORY_COLORS[e.categoria] ?? 'bg-line text-fg/50'}`}>
-                      {CATEGORY_LABELS[e.categoria] ?? e.categoria}
+                      {t('cat.' + e.categoria)}
                     </span>
                     <div>
                       <span className="line-through text-vermillion">{e.original}</span>
@@ -83,7 +76,7 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
         {/* Part 2 correction */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="font-ui font-semibold text-fg">Produção</h2>
+            <h2 className="font-ui font-semibold text-fg">{t('corr.productionShort')}</h2>
             <span className="font-ui text-sm font-bold text-fg">{sessao.parte2.pontuacao}/10</span>
           </div>
           <div className="space-y-3">
@@ -102,7 +95,7 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
                     {f.nota && <p className="text-xs text-fg/50 font-ui mt-1">{f.nota}</p>}
                     {!f.correcto && f.categoria_erro && (
                       <span className={`text-xs px-2 py-0.5 rounded-lg font-ui mt-1 inline-block ${CATEGORY_COLORS[f.categoria_erro] ?? 'bg-line text-fg/50'}`}>
-                        {CATEGORY_LABELS[f.categoria_erro] ?? f.categoria_erro}
+                        {t('cat.' + f.categoria_erro)}
                       </span>
                     )}
                   </div>
@@ -114,7 +107,7 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
 
         {loading && (
           <div className="text-center py-4">
-            <p className="text-fg/40 font-ui text-sm animate-pulse">A corrigir…</p>
+            <p className="text-fg/40 font-ui text-sm animate-pulse">{t('session.correcting')}</p>
           </div>
         )}
 
@@ -126,14 +119,14 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
                 onClick={() => onContinue(false)}
                 className="w-full py-4 rounded-2xl bg-gold text-white font-ui font-semibold active:scale-95 transition-all"
               >
-                Continuar para escrita livre
+                {t('corr.continueFree')}
               </button>
             )}
             <button
               onClick={() => onContinue(true)}
               className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold active:scale-95 transition-all"
             >
-              {showPart3Option ? 'Saltar escrita livre' : 'Terminar sessão'}
+              {showPart3Option ? t('corr.skipFree') : t('corr.finish')}
             </button>
           </div>
         )}

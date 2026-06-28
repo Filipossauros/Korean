@@ -42,6 +42,33 @@ const pt: Dict = {
   'welcome.recover': 'Recuperar progresso',
   'welcome.recoverDesc': 'Entra com a tua conta Google para verificar se já existe progresso guardado no Drive e continuar de onde paraste. A tua chave da API também é restaurada.',
   'welcome.signIn': 'Entrar com Google', 'welcome.offline': 'Começar sem ligar (offline)',
+  // categorias de erro
+  'cat.partícula': 'Partícula', 'cat.vocabulário': 'Vocabulário', 'cat.gramática': 'Gramática',
+  'cat.tempo_verbal': 'Tempo verbal', 'cat.registo': 'Registo', 'cat.ordem_palavras': 'Ordem',
+  // correção
+  'corr.yourTranslation': 'A tua tradução:', 'corr.reference': 'Tradução de referência:',
+  'corr.continueFree': 'Continuar para escrita livre', 'corr.skipFree': 'Saltar escrita livre',
+  'corr.finish': 'Terminar sessão', 'corr.readingShort': 'Leitura', 'corr.productionShort': 'Produção',
+  // escrita livre
+  'fw.theme': 'Tema', 'fw.submit': 'Submeter', 'fw.correctedText': 'Texto corrigido:',
+  'fw.spontaneous': 'Estruturas espontâneas ✓', 'fw.corrections': 'Correções:',
+  // progresso
+  'prog.totalSessions': 'Sessões totais', 'prog.vocabSeen': 'Vocabulário visto',
+  'prog.vocabConsolidated': 'Vocab consolidada', 'prog.structMastered': 'Estruturas dominadas',
+  'prog.inProgress': 'Em progresso', 'prog.currentStreak': 'Streak atual',
+  'prog.scorePerSession': 'Pontuação por sessão', 'prog.avgTime': 'Tempo médio (min)',
+  'prog.grammarStructures': 'Estruturas gramaticais', 'prog.mastered': 'Dominada',
+  'prog.toWork': 'Por trabalhar', 'prog.need2': 'Faz pelo menos 2 sessões para ver gráficos',
+  'prog.score': 'Pontuação', 'prog.time': 'Tempo',
+  // vocabulário
+  'vocab.title': 'Vocabulário SRS', 'vocab.tapToSee': 'toca para ver', 'vocab.allDone': 'Tudo em dia!',
+  'vocab.noneToday': 'Sem cartões para hoje.', 'vocab.all': 'Todo o vocabulário',
+  'vocab.none': 'Nenhum vocabulário ainda', 'vocab.doSession': 'Faz uma sessão para começar a aprender palavras',
+  'vocab.wrong': 'Errei', 'vocab.right': 'Acertei', 'vocab.seen': 'visto',
+  'vocab.reviewed': 'Revisaste {n} cartões.',
+  // chat
+  'chat.title': 'Conversa livre', 'chat.placeholder': 'Escreve aqui…',
+  'chat.intro': '안녕하세요! 저는 한국어 선생님이에요. Estou aqui para ajudar com o teu coreano (nível {nivel}). Podes perguntar sobre gramática, vocabulário, ou praticar conversação. Como posso ajudar?',
 }
 
 const en: Dict = {
@@ -77,6 +104,27 @@ const en: Dict = {
   'welcome.recover': 'Recover progress',
   'welcome.recoverDesc': 'Sign in with your Google account to check for saved progress on Drive and continue where you left off. Your API key is restored too.',
   'welcome.signIn': 'Sign in with Google', 'welcome.offline': 'Start offline',
+  'cat.partícula': 'Particle', 'cat.vocabulário': 'Vocabulary', 'cat.gramática': 'Grammar',
+  'cat.tempo_verbal': 'Tense', 'cat.registo': 'Register', 'cat.ordem_palavras': 'Word order',
+  'corr.yourTranslation': 'Your translation:', 'corr.reference': 'Reference translation:',
+  'corr.continueFree': 'Continue to free writing', 'corr.skipFree': 'Skip free writing',
+  'corr.finish': 'Finish session', 'corr.readingShort': 'Reading', 'corr.productionShort': 'Production',
+  'fw.theme': 'Topic', 'fw.submit': 'Submit', 'fw.correctedText': 'Corrected text:',
+  'fw.spontaneous': 'Spontaneous structures ✓', 'fw.corrections': 'Corrections:',
+  'prog.totalSessions': 'Total sessions', 'prog.vocabSeen': 'Vocabulary seen',
+  'prog.vocabConsolidated': 'Vocab consolidated', 'prog.structMastered': 'Structures mastered',
+  'prog.inProgress': 'In progress', 'prog.currentStreak': 'Current streak',
+  'prog.scorePerSession': 'Score per session', 'prog.avgTime': 'Average time (min)',
+  'prog.grammarStructures': 'Grammar structures', 'prog.mastered': 'Mastered',
+  'prog.toWork': 'To work on', 'prog.need2': 'Do at least 2 sessions to see charts',
+  'prog.score': 'Score', 'prog.time': 'Time',
+  'vocab.title': 'SRS Vocabulary', 'vocab.tapToSee': 'tap to flip', 'vocab.allDone': 'All caught up!',
+  'vocab.noneToday': 'No cards for today.', 'vocab.all': 'All vocabulary',
+  'vocab.none': 'No vocabulary yet', 'vocab.doSession': 'Do a session to start learning words',
+  'vocab.wrong': 'Got it wrong', 'vocab.right': 'Got it right', 'vocab.seen': 'seen',
+  'vocab.reviewed': 'You reviewed {n} cards.',
+  'chat.title': 'Free chat', 'chat.placeholder': 'Type here…',
+  'chat.intro': "안녕하세요! 저는 한국어 선생님이에요. I'm here to help with your Korean (level {nivel}). You can ask about grammar, vocabulary, or practice conversation. How can I help?",
 }
 
 const dicts: Record<Language, Dict> = { pt, en }

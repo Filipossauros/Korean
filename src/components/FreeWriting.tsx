@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { correctFreeWriting } from '../api/anthropic'
 import { PencilIcon, CheckIcon } from './Icons'
+import { useT } from '../lib/i18n'
 
 interface Props {
   nivel: string
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function FreeWriting({ nivel, tema, onDone }: Props) {
+  const t = useT()
   const [texto, setTexto] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{
@@ -39,11 +41,11 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <div className="flex items-center gap-2 mb-6">
           <PencilIcon size={20} />
-          <h1 className="font-ui font-semibold text-fg">Escrita livre · Parte 3</h1>
+          <h1 className="font-ui font-semibold text-fg">{t('session.freeWriting')}</h1>
         </div>
 
         <div className="bg-gold/10 rounded-2xl p-4 border border-gold/20 mb-6">
-          <p className="text-xs text-gold font-ui uppercase tracking-wide mb-1">Tema</p>
+          <p className="text-xs text-gold font-ui uppercase tracking-wide mb-1">{t('fw.theme')}</p>
           <p className="font-serif text-lg text-fg">{tema}</p>
         </div>
 
@@ -63,7 +65,7 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
               disabled={loading || !texto.trim()}
               className="w-full py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold disabled:opacity-40"
             >
-              {loading ? 'A corrigir…' : 'Submeter'}
+              {loading ? t('session.correcting') : t('fw.submit')}
             </button>
           </>
         ) : (
@@ -76,14 +78,14 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
 
             {/* Corrected text */}
             <div className="bg-surface rounded-2xl p-4 border border-line">
-              <p className="text-xs text-fg/40 font-ui mb-2">Texto corrigido:</p>
+              <p className="text-xs text-fg/40 font-ui mb-2">{t('fw.correctedText')}</p>
               <p className="font-serif text-base text-fg">{result.correcao}</p>
             </div>
 
             {/* Structures used spontaneously */}
             {result.estruturas_espontaneas.length > 0 && (
               <div className="bg-surface rounded-2xl p-4 border border-jade/30">
-                <p className="text-xs text-jade font-ui uppercase tracking-wide mb-2">Estruturas espontâneas ✓</p>
+                <p className="text-xs text-jade font-ui uppercase tracking-wide mb-2">{t('fw.spontaneous')}</p>
                 <div className="flex flex-wrap gap-2">
                   {result.estruturas_espontaneas.map(e => (
                     <span key={e} className="font-serif text-sm px-2 py-1 bg-jade/10 text-jade rounded-lg">{e}</span>
@@ -95,7 +97,7 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
             {/* Errors */}
             {result.erros.length > 0 && (
               <div className="bg-surface rounded-2xl p-4 border border-line">
-                <p className="text-xs text-fg/40 font-ui mb-3">Correções:</p>
+                <p className="text-xs text-fg/40 font-ui mb-3">{t('fw.corrections')}</p>
                 <div className="space-y-2">
                   {result.erros.map((e, i) => (
                     <div key={i} className="text-sm">
@@ -113,7 +115,7 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
               onClick={() => onDone(texto, result.correcao, result.estruturas_usadas, result.estruturas_espontaneas)}
               className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold"
             >
-              Terminar sessão
+              {t('corr.finish')}
             </button>
           </div>
         )}

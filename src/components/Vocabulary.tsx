@@ -4,6 +4,7 @@ import { LayersIcon, CheckIcon, XIcon, SpeakerIcon } from './Icons'
 import { speakKorean, canSpeak } from '../lib/tts'
 import { romanize } from '../lib/romanize'
 import { useSettings } from '../lib/settings'
+import { useT } from '../lib/i18n'
 
 interface Props {
   perfil: Perfil
@@ -20,6 +21,7 @@ function getNextReview(nivel: 1 | 2 | 3): string {
 
 export function Vocabulary({ perfil, onUpdate }: Props) {
   const { romanization } = useSettings()
+  const t = useT()
   const today = new Date().toISOString().slice(0, 10)
   const due = perfil.vocabulario_visto.filter(v => v.srs_proxima_revisao <= today)
   const [idx, setIdx] = useState(0)
@@ -31,8 +33,8 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
       <div className="min-h-screen bg-paper flex items-center justify-center">
         <div className="text-center text-fg/30">
           <LayersIcon size={40} />
-          <p className="font-ui mt-3">Nenhum vocabulário ainda</p>
-          <p className="text-sm font-ui mt-1">Faz uma sessão para começar a aprender palavras</p>
+          <p className="font-ui mt-3">{t('vocab.none')}</p>
+          <p className="text-sm font-ui mt-1">{t('vocab.doSession')}</p>
         </div>
       </div>
     )
@@ -43,12 +45,12 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
       <div className="min-h-screen bg-paper flex items-center justify-center">
         <div className="text-center px-6">
           <div className="text-jade mb-3"><CheckIcon size={40} /></div>
-          <h2 className="font-ui font-semibold text-fg text-xl">Tudo em dia!</h2>
+          <h2 className="font-ui font-semibold text-fg text-xl">{t('vocab.allDone')}</h2>
           <p className="text-fg/50 font-ui mt-1 text-sm">
-            {due.length === 0 ? 'Sem cartões para hoje.' : `Revisaste ${due.length} cartões.`}
+            {due.length === 0 ? t('vocab.noneToday') : t('vocab.reviewed').replace('{n}', String(due.length))}
           </p>
           <div className="mt-6 text-left bg-surface rounded-2xl p-4 border border-line max-w-xs mx-auto">
-            <p className="text-xs text-fg/40 font-ui uppercase tracking-wide mb-3">Todo o vocabulário</p>
+            <p className="text-xs text-fg/40 font-ui uppercase tracking-wide mb-3">{t('vocab.all')}</p>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {perfil.vocabulario_visto.map(v => (
                 <div key={v.kr} className="flex justify-between text-sm">
@@ -99,7 +101,7 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <LayersIcon size={20} />
-            <h1 className="font-ui font-semibold text-fg">Vocabulário SRS</h1>
+            <h1 className="font-ui font-semibold text-fg">{t('vocab.title')}</h1>
           </div>
           <span className="text-sm text-fg/40 font-ui">{idx + 1}/{due.length}</span>
         </div>
@@ -122,7 +124,7 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
                   <SpeakerIcon size={22} />
                 </button>
               )}
-              <p className="text-xs text-fg/30 font-ui">toca para ver</p>
+              <p className="text-xs text-fg/30 font-ui">{t('vocab.tapToSee')}</p>
             </>
           ) : (
             <>
@@ -134,7 +136,7 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
                   card.srs_nivel === 3 ? 'bg-jade/10 text-jade' :
                   card.srs_nivel === 2 ? 'bg-gold/10 text-gold' : 'bg-vermillion/10 text-vermillion'
                 }`}>N{card.srs_nivel}</span>
-                <span className="text-xs text-fg/30 font-ui">visto {card.vezes_visto}×</span>
+                <span className="text-xs text-fg/30 font-ui">{t('vocab.seen')} {card.vezes_visto}×</span>
               </div>
             </>
           )}
@@ -146,13 +148,13 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
               onClick={() => answer(false)}
               className="flex-1 py-4 rounded-2xl border border-vermillion/30 text-vermillion font-ui font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all"
             >
-              <XIcon size={18} /> Errei
+              <XIcon size={18} /> {t('vocab.wrong')}
             </button>
             <button
               onClick={() => answer(true)}
               className="flex-1 py-4 rounded-2xl border border-jade/30 text-jade font-ui font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all"
             >
-              <CheckIcon size={18} /> Acertei
+              <CheckIcon size={18} /> {t('vocab.right')}
             </button>
           </div>
         )}

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { streamFreeChat } from '../api/anthropic'
 import { MessageIcon, SendIcon } from './Icons'
 import { useSettings } from '../lib/settings'
+import { useT } from '../lib/i18n'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -14,8 +15,9 @@ interface Props {
 
 export function FreeChat({ nivel }: Props) {
   const { model } = useSettings()
+  const t = useT()
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: `안녕하세요! 저는 한국어 선생님이에요. Estou aqui para ajudar com o teu coreano (nível ${nivel}). Podes perguntar sobre gramática, vocabulário, ou praticar conversação. Como posso ajudar?` }
+    { role: 'assistant', content: t('chat.intro').replace('{nivel}', nivel) }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -57,7 +59,7 @@ export function FreeChat({ nivel }: Props) {
       {/* Header */}
       <div className="px-4 py-4 border-b border-line bg-surface flex items-center gap-2">
         <MessageIcon size={20} />
-        <h1 className="font-ui font-semibold text-fg">Conversa livre</h1>
+        <h1 className="font-ui font-semibold text-fg">{t('chat.title')}</h1>
         <span className="ml-auto text-xs text-fg/30 font-ui">{model}</span>
       </div>
 
@@ -89,7 +91,7 @@ export function FreeChat({ nivel }: Props) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
-            placeholder="Escreve aqui…"
+            placeholder={t('chat.placeholder')}
             className="flex-1 rounded-xl border border-line px-3 py-2 text-sm font-ui text-fg focus:outline-none focus:border-gold"
           />
           <button

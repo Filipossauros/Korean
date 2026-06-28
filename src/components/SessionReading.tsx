@@ -43,7 +43,7 @@ export function SessionReading({ draft, onSubmit, showTimer }: Props) {
 
         {/* Vocab + grammar box */}
         <div className="bg-ink/5 rounded-2xl p-4 mb-6 border border-line">
-          <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-3">Vocabulário novo</h2>
+          <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-3">{t('session.newVocab')}</h2>
           <div className="space-y-2 mb-4">
             {draft.parte1.vocabulario_novo.map(v => (
               <div key={v.kr} className="flex gap-3 items-baseline">
@@ -54,7 +54,7 @@ export function SessionReading({ draft, onSubmit, showTimer }: Props) {
             ))}
           </div>
           <div className="border-t border-line pt-3">
-            <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-2">Ponto gramatical</h2>
+            <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-2">{t('session.grammarPoint')}</h2>
             <div className="flex gap-2 items-baseline flex-wrap">
               <span className="font-serif text-base text-gold font-semibold">{draft.parte1.ponto_gramatical.forma}</span>
               <span className="text-fg/60 font-ui text-sm">— {draft.parte1.ponto_gramatical.significado}</span>

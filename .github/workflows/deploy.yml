@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - claude/new-session-vxd7qr
   workflow_dispatch:
 
 permissions:

@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { AppView, Sessao, UnidadeKSI } from './types'
 import { useProfile } from './hooks/useProfile'
 import { useSession } from './hooks/useSession'
 import { useBackup } from './hooks/useBackup'
-import { getSessoes } from './db'
-import { handleGoogleOAuthCallback } from './api/google-drive'
+import { getSessoes, importAllData } from './db'
+import {
+  handleGoogleOAuthCallback, consumeOAuthPending, isGoogleConnected,
+  isGoogleConfigured, restoreFromGoogleDrive, disconnectGoogle, initiateGoogleAuth
+} from './api/google-drive'
 import curriculo from './data/ksi_curriculo_completo.json'
 
 import { Dashboard } from './components/Dashboard'
@@ -16,6 +19,7 @@ import { Vocabulary } from './components/Vocabulary'
 import { Progress } from './components/Progress'
 import { FreeChat } from './components/FreeChat'
 import { Settings } from './components/Settings'
+import { Welcome } from './components/Welcome'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import {
   HomeIcon, LayersIcon, BarChartIcon, MessageIcon, SettingsIcon
@@ -53,17 +57,49 @@ function getUnidade(nivel: string): UnidadeKSI {
 export default function App() {
   const [view, setView] = useState<AppView>('dashboard')
   const [sessoes, setSessoes] = useState<Sessao[]>([])
-  const { perfil, setPerfil, loading } = useProfile()
+  const { perfil, setPerfil, loading, reload } = useProfile()
   const session = useSession()
   const { backup } = useBackup()
   const [corrLoading, setCorrLoading] = useState(false)
+  const [startup, setStartup] = useState<'init' | 'welcome' | 'restoring' | 'ready'>('init')
+  const startupRan = useRef(false)
 
   const showTimer = localStorage.getItem('show_timer') !== 'false'
 
-  useEffect(() => { handleGoogleOAuthCallback() }, [])
-
   const refreshSessoes = useCallback(() => { getSessoes().then(setSessoes) }, [])
   useEffect(() => { refreshSessoes() }, [refreshSessoes])
+
+  // Arranque: ao abrir num browser novo, faz login no Google, verifica se há
+  // backup de progresso no Drive e restaura-o (incluindo a chave da API).
+  useEffect(() => {
+    if (loading || startupRan.current) return
+    startupRan.current = true
+    void (async () => {
+      const returned = handleGoogleOAuthCallback()
+      consumeOAuthPending()
+
+      if (isGoogleConnected()) {
+        setStartup('restoring')
+        try {
+          const bk = await restoreFromGoogleDrive()
+          if (bk) {
+            await importAllData({ perfil: bk.perfil, sessoes: bk.sessoes })
+            if (bk.anthropic_api_key) localStorage.setItem('anthropic_api_key', bk.anthropic_api_key)
+            await reload()
+            refreshSessoes()
+          }
+          setStartup('ready')
+          return
+        } catch (e) {
+          if (e instanceof Error && e.message === 'token_expirado') disconnectGoogle()
+        }
+      }
+
+      const isFresh = perfil.sessoes_realizadas === 0 && perfil.vocabulario_visto.length === 0
+      if (!returned && isFresh && isGoogleConfigured()) setStartup('welcome')
+      else setStartup('ready')
+    })()
+  }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // React to session phase changes
   useEffect(() => {
@@ -121,7 +157,16 @@ export default function App() {
 
   const showPart3 = perfil.sessoes_realizadas > 0 && (perfil.sessoes_realizadas + 1) % 3 === 0
 
-  if (loading) return <LoadingOverlay message="A carregar…" />
+  if (loading || startup === 'init') return <LoadingOverlay message="A carregar…" />
+  if (startup === 'restoring') return <LoadingOverlay message="A verificar progresso no Google Drive…" />
+  if (startup === 'welcome') {
+    return (
+      <Welcome
+        onLogin={() => initiateGoogleAuth()}
+        onSkip={() => setStartup('ready')}
+      />
+    )
+  }
 
   const isSessionActive = ['session-reading', 'session-writing', 'session-correction', 'free-writing'].includes(view)
 

@@ -13,6 +13,11 @@ export function useProfile() {
     })
   }, [])
 
+  const reload = useCallback(async () => {
+    const p = await getPerfil()
+    setPerfil(p)
+  }, [])
+
   const updatePerfil = useCallback(async (updates: Partial<Perfil>) => {
     setPerfil(prev => {
       const next = { ...prev, ...updates }
@@ -29,7 +34,7 @@ export function useProfile() {
     })
   }, [])
 
-  return { perfil, setPerfil: updatePerfil_, loading, updatePerfil }
+  return { perfil, setPerfil: updatePerfil_, loading, updatePerfil, reload }
 }
 
 export function avaliarEstrutura(estrutura: EstruturaItem, sessoes: Sessao[]): EstruturaItem['estado'] {

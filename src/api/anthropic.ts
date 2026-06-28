@@ -18,6 +18,7 @@ async function callAnthropic(prompt: string, maxTokens = 4096): Promise<string> 
     headers: {
       'x-api-key': key,
       'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
       'content-type': 'application/json',
     },
     body: JSON.stringify({
@@ -80,6 +81,7 @@ export async function sendFreeChat(messages: { role: 'user' | 'assistant'; conte
     headers: {
       'x-api-key': key,
       'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
       'content-type': 'application/json',
     },
     body: JSON.stringify({

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Perfil, Sessao } from '../types'
-import { initiateGoogleAuth, isGoogleConnected, restoreFromGoogleDrive } from '../api/google-drive'
-import { exportAllData, importAllData } from '../db'
+import { initiateGoogleAuth, isGoogleConnected, restoreFromGoogleDrive, backupToGoogleDrive } from '../api/google-drive'
+import { exportAllData, importAllData, getSessoes } from '../db'
 import { SettingsIcon, DriveIcon, DownloadIcon, UploadIcon } from './Icons'
 
 interface Props {
@@ -17,7 +17,7 @@ export function Settings({ perfil, onRestore }: Props) {
   const [restoring, setRestoring] = useState(false)
   const [msg, setMsg] = useState('')
 
-  const save = () => {
+  const save = async () => {
     if (apiKey.trim()) localStorage.setItem('anthropic_api_key', apiKey.trim())
     else localStorage.removeItem('anthropic_api_key')
     if (clientId.trim()) localStorage.setItem('google_client_id', clientId.trim())
@@ -25,6 +25,13 @@ export function Settings({ perfil, onRestore }: Props) {
     localStorage.setItem('show_timer', String(showTimer))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+    // Empurra logo para o Drive (inclui a chave da API) para um browser novo a recuperar.
+    if (isGoogleConnected()) {
+      try {
+        const sessoes = await getSessoes()
+        await backupToGoogleDrive(perfil, sessoes)
+      } catch { /* silencioso */ }
+    }
   }
 
   const handleExport = async () => {
@@ -59,7 +66,11 @@ export function Settings({ perfil, onRestore }: Props) {
     try {
       const data = await restoreFromGoogleDrive()
       if (data) {
-        await importAllData(data)
+        await importAllData({ perfil: data.perfil, sessoes: data.sessoes })
+        if (data.anthropic_api_key) {
+          localStorage.setItem('anthropic_api_key', data.anthropic_api_key)
+          setApiKey(data.anthropic_api_key)
+        }
         setMsg('Dados restaurados do Google Drive!')
         onRestore()
       } else {

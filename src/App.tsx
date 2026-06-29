@@ -40,7 +40,6 @@ export default function App() {
   const { backup } = useBackup()
   const t = useT()
   const { showTimer } = useSettings()
-  const [corrLoading, setCorrLoading] = useState(false)
   const [startup, setStartup] = useState<'init' | 'welcome' | 'restoring' | 'ready'>('init')
   const startupRan = useRef(false)
 
@@ -85,7 +84,7 @@ export default function App() {
   // React to session phase changes
   useEffect(() => {
     if (session.phase === 'part1') setView('session-reading')
-    else if (session.phase === 'correcting' || session.phase === 'correcting2') setView('session-correction')
+    else if (['correcting1', 'review1', 'correcting2', 'review2'].includes(session.phase)) setView('session-correction')
     else if (session.phase === 'part2') setView('session-writing')
     else if (session.phase === 'part3') setView('free-writing')
     else if (session.phase === 'done') {
@@ -150,12 +149,6 @@ export default function App() {
     setView('dashboard')
   }
 
-  const handleCorrection = async () => {
-    setCorrLoading(true)
-    await session.applyCorrection1()
-    setCorrLoading(false)
-  }
-
   const showPart3 = perfil.sessoes_realizadas > 0 && (perfil.sessoes_realizadas + 1) % 3 === 0
 
   if (loading || startup === 'init') return <LoadingOverlay message={t('common.loading')} />
@@ -190,24 +183,29 @@ export default function App() {
             draft={session.draft}
             showTimer={showTimer}
             initialValue={session.sessao?.parte1.traducao_utilizador ?? ''}
-            onSubmit={traducao => { session.submitPart1(traducao); handleCorrection() }}
+            onSubmit={traducao => { void session.submitPart1(traducao) }}
           />
         ) : null
-      case 'session-correction':
+      case 'session-correction': {
+        const isPart1Stage = session.phase === 'correcting1' || session.phase === 'review1'
         return session.sessao ? (
           <SessionCorrection
             sessao={session.sessao}
+            stage={isPart1Stage ? 'part1' : 'final'}
             showPart3Option={showPart3}
-            loading={corrLoading || session.phase === 'correcting'}
-            onContinue={skip => session.finishSession(skip, showPart3)}
+            loading={session.phase === 'correcting1' || session.phase === 'correcting2'}
+            onContinue={isPart1Stage
+              ? () => session.continueToPart2()
+              : skip => session.finishSession(skip, showPart3)}
           />
         ) : null
+      }
       case 'session-writing':
         return session.sessao ? (
           <SessionWriting
             frases={session.sessao.parte2.frases}
             showTimer={showTimer}
-            onSubmit={respostas => { session.submitPart2(respostas); handleCorrection() }}
+            onSubmit={respostas => { void session.submitPart2(respostas) }}
           />
         ) : null
       case 'dialogue':

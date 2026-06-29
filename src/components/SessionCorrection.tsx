@@ -7,6 +7,9 @@ interface Props {
   showPart3Option: boolean
   onContinue: (doPart3: boolean) => void
   loading?: boolean
+  // 'part1' = só a correção da tradução (com botão "continuar para produção");
+  // 'final' = correção completa (Parte 1 + Parte 2) com terminar/escrita livre.
+  stage?: 'part1' | 'final'
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -18,25 +21,29 @@ const CATEGORY_COLORS: Record<string, string> = {
   'ordem_palavras': 'bg-ink/10 text-fg/70',
 }
 
-export function SessionCorrection({ sessao, showPart3Option, onContinue, loading }: Props) {
+export function SessionCorrection({ sessao, showPart3Option, onContinue, loading, stage = 'final' }: Props) {
   const t = useT()
-  const total = sessao.parte1.pontuacao + sessao.parte2.pontuacao
-  const pct = Math.round((total / 20) * 100)
+  const isPart1 = stage === 'part1'
+  const max = isPart1 ? 10 : 20
+  const total = isPart1 ? sessao.parte1.pontuacao : sessao.parte1.pontuacao + sessao.parte2.pontuacao
+  const pct = Math.round((total / max) * 100)
 
   return (
     <div className="min-h-screen bg-paper pb-24 md:pb-0">
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Score summary */}
-        <div className="bg-surface rounded-2xl p-5 border border-line mb-6 text-center">
-          <p className="text-5xl font-bold font-ui text-fg mb-1">{total}<span className="text-2xl text-fg/30">/20</span></p>
-          <div className="w-full h-2 bg-line rounded-full mt-3 mb-2">
-            <div
-              className={`h-2 rounded-full transition-all ${pct >= 70 ? 'bg-jade' : pct >= 40 ? 'bg-gold' : 'bg-vermillion'}`}
-              style={{ width: `${pct}%` }}
-            />
+        {/* Score summary — escondido enquanto a Parte 1 ainda está a corrigir */}
+        {!(isPart1 && loading) && (
+          <div className="bg-surface rounded-2xl p-5 border border-line mb-6 text-center">
+            <p className="text-5xl font-bold font-ui text-fg mb-1">{total}<span className="text-2xl text-fg/30">/{max}</span></p>
+            <div className="w-full h-2 bg-line rounded-full mt-3 mb-2">
+              <div
+                className={`h-2 rounded-full transition-all ${pct >= 70 ? 'bg-jade' : pct >= 40 ? 'bg-gold' : 'bg-vermillion'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <p className="text-sm text-fg/50 font-ui">{pct}% · {sessao.tema}</p>
           </div>
-          <p className="text-sm text-fg/50 font-ui">{pct}% · {sessao.tema}</p>
-        </div>
+        )}
 
         {/* Part 1 correction */}
         <div className="mb-6">
@@ -73,7 +80,8 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
           </div>
         </div>
 
-        {/* Part 2 correction */}
+        {/* Part 2 correction — só na correção final */}
+        {!isPart1 && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
             <h2 className="font-ui font-semibold text-fg">{t('corr.productionShort')}</h2>
@@ -104,6 +112,7 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
             ))}
           </div>
         </div>
+        )}
 
         {loading && (
           <div className="text-center py-4">
@@ -112,7 +121,15 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
         )}
 
         {/* CTA */}
-        {!loading && (
+        {!loading && isPart1 && (
+          <button
+            onClick={() => onContinue(false)}
+            className="w-full py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold active:scale-95 transition-all"
+          >
+            {t('corr.continueProduction')}
+          </button>
+        )}
+        {!loading && !isPart1 && (
           <div className="space-y-3">
             {showPart3Option && (
               <button

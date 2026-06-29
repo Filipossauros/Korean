@@ -1,17 +1,19 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import type { Sessao, SessionDraft, Perfil, UnidadeKSI } from '../types'
-import { generateSession, correctSession } from '../api/anthropic'
+import { generateSession, correctTranslation, correctProduction } from '../api/anthropic'
 import { saveSessao } from '../db'
 import { saveInProgress, clearInProgress, loadInProgress } from '../lib/sessionStore'
 
 export type SessionPhase =
   | 'idle'
   | 'generating'
-  | 'part1'
-  | 'correcting'
-  | 'part2'
-  | 'correcting2'
-  | 'part3'
+  | 'part1'        // leitura + tradução
+  | 'correcting1'  // a corrigir a tradução
+  | 'review1'      // mostra a correção da Parte 1
+  | 'part2'        // produção (escrita)
+  | 'correcting2'  // a corrigir a produção
+  | 'review2'      // mostra a correção final (Parte 1 + Parte 2)
+  | 'part3'        // escrita livre (opcional)
   | 'done'
 
 export function useSession() {
@@ -23,13 +25,19 @@ export function useSession() {
   const startTimeRef = useRef<number>(0)
 
   // Persiste a sessão em curso sempre que muda, para sobreviver a sair/recarregar.
+  // As fases de carregamento são mapeadas para a fase estável anterior (para se
+  // retomar no sítio certo se a correção for interrompida).
   useEffect(() => {
     if (!sessao) return
-    const stable = phase === 'correcting' || phase === 'generating' ? 'part1'
+    const stable =
+      phase === 'generating' || phase === 'correcting1' ? 'part1'
+      : phase === 'review1' ? 'review1'
       : phase === 'correcting2' ? 'part2'
+      : phase === 'review2' ? 'review2'
       : phase
-    if (stable === 'part1' || stable === 'part2' || stable === 'part3') {
-      saveInProgress({ phase: stable, draft, sessao })
+    const persistable = ['part1', 'review1', 'part2', 'review2', 'part3']
+    if (persistable.includes(stable)) {
+      saveInProgress({ phase: stable as 'part1' | 'review1' | 'part2' | 'review2' | 'part3', draft, sessao })
     }
   }, [phase, draft, sessao])
 
@@ -95,62 +103,77 @@ export function useSession() {
     }
   }, [startTimer])
 
-  const submitPart1 = useCallback((traducao: string) => {
-    const tempo = stopTimer()
-    setSessao(prev => prev ? {
-      ...prev,
-      parte1: { ...prev.parte1, traducao_utilizador: traducao, tempo_segundos: tempo }
-    } : prev)
-    setPhase('correcting')
-    startTimer()
-  }, [stopTimer, startTimer])
-
-  const applyCorrection1 = useCallback(async () => {
+  // Parte 1: regista a tradução, corrige SÓ a tradução e mostra a correção (review1).
+  const submitPart1 = useCallback(async (traducao: string) => {
     if (!sessao) return
-    setError(null)
-    try {
-      const result = await correctSession(sessao)
-      const updated: Sessao = {
-        ...sessao,
-        parte1: {
-          ...sessao.parte1,
-          pontuacao: result.parte1.pontuacao,
-          erros: result.parte1.erros,
-          traducao_referencia: result.parte1.correcao || sessao.parte1.traducao_referencia,
-        },
-        parte2: {
-          ...sessao.parte2,
-          frases: sessao.parte2.frases.map((f, i) => {
-            const r = result.parte2.frases[i]
-            return r ? { ...f, correcto: r.correcto, nota: r.nota, categoria_erro: r.categoria_erro } : f
-          }),
-          pontuacao: result.parte2.pontuacao,
-        },
-        estruturas_praticadas: result.estruturas_praticadas,
-      }
-      setSessao(updated)
-      setPhase('part2')
-      startTimer()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erro ao corrigir sessão')
-    }
-  }, [sessao, startTimer])
-
-  const submitPart2 = useCallback((respostas: string[]) => {
     const tempo = stopTimer()
-    setSessao(prev => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        parte2: {
-          ...prev.parte2,
-          tempo_segundos: tempo,
-          frases: prev.parte2.frases.map((f, i) => ({ ...f, kr_utilizador: respostas[i] ?? '' })),
-        }
-      }
-    })
+    const base: Sessao = {
+      ...sessao,
+      parte1: { ...sessao.parte1, traducao_utilizador: traducao, tempo_segundos: tempo },
+    }
+    setSessao(base)
+    setError(null)
+    setPhase('correcting1')
+    try {
+      const r = await correctTranslation(base)
+      setSessao({
+        ...base,
+        parte1: {
+          ...base.parte1,
+          pontuacao: r.pontuacao,
+          erros: r.erros,
+          traducao_referencia: r.correcao || base.parte1.traducao_referencia,
+        },
+      })
+      setPhase('review1')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro ao corrigir a tradução')
+      setPhase('part1') // permite tentar submeter de novo
+    }
+  }, [sessao, stopTimer])
+
+  // Avança da correção da Parte 1 para a produção (Parte 2).
+  const continueToPart2 = useCallback(() => {
+    setError(null)
+    setPhase('part2')
+    startTimer()
+  }, [startTimer])
+
+  // Parte 2: regista as frases, corrige a produção e mostra a correção final (review2).
+  const submitPart2 = useCallback(async (respostas: string[]) => {
+    if (!sessao) return
+    const tempo = stopTimer()
+    const base: Sessao = {
+      ...sessao,
+      parte2: {
+        ...sessao.parte2,
+        tempo_segundos: tempo,
+        frases: sessao.parte2.frases.map((f, i) => ({ ...f, kr_utilizador: respostas[i] ?? '' })),
+      },
+    }
+    setSessao(base)
+    setError(null)
     setPhase('correcting2')
-  }, [stopTimer])
+    try {
+      const r = await correctProduction(base)
+      setSessao({
+        ...base,
+        parte2: {
+          ...base.parte2,
+          pontuacao: r.pontuacao,
+          frases: base.parte2.frases.map((f, i) => {
+            const rr = r.frases[i]
+            return rr ? { ...f, correcto: rr.correcto, nota: rr.nota, categoria_erro: rr.categoria_erro } : f
+          }),
+        },
+        estruturas_praticadas: r.estruturas_praticadas ?? [],
+      })
+      setPhase('review2')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro ao corrigir a produção')
+      setPhase('part2') // permite tentar submeter de novo
+    }
+  }, [sessao, stopTimer])
 
   const finishSession = useCallback(async (skipPart3: boolean, showPart3: boolean) => {
     if (!sessao) return
@@ -204,7 +227,7 @@ export function useSession() {
 
   return {
     phase, draft, sessao, error,
-    startSession, submitPart1, applyCorrection1, submitPart2,
+    startSession, submitPart1, continueToPart2, submitPart2,
     finishSession, applyPart3, reset, discard, resume
   }
 }

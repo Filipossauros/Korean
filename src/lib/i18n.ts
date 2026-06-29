@@ -47,6 +47,7 @@ const pt: Dict = {
   'cat.tempo_verbal': 'Tempo verbal', 'cat.registo': 'Registo', 'cat.ordem_palavras': 'Ordem',
   // correção
   'corr.yourTranslation': 'A tua tradução:', 'corr.reference': 'Tradução de referência:',
+  'corr.continueProduction': 'Continuar para produção',
   'corr.continueFree': 'Continuar para escrita livre', 'corr.skipFree': 'Saltar escrita livre',
   'corr.finish': 'Terminar sessão', 'corr.readingShort': 'Leitura', 'corr.productionShort': 'Produção',
   // escrita livre
@@ -118,6 +119,7 @@ const en: Dict = {
   'cat.partícula': 'Particle', 'cat.vocabulário': 'Vocabulary', 'cat.gramática': 'Grammar',
   'cat.tempo_verbal': 'Tense', 'cat.registo': 'Register', 'cat.ordem_palavras': 'Word order',
   'corr.yourTranslation': 'Your translation:', 'corr.reference': 'Reference translation:',
+  'corr.continueProduction': 'Continue to production',
   'corr.continueFree': 'Continue to free writing', 'corr.skipFree': 'Skip free writing',
   'corr.finish': 'Finish session', 'corr.readingShort': 'Reading', 'corr.productionShort': 'Production',
   'fw.theme': 'Topic', 'fw.submit': 'Submit', 'fw.correctedText': 'Corrected text:',

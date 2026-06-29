@@ -4,7 +4,7 @@ import type { Sessao, SessionDraft } from '../types'
 const KEY = 'session_in_progress'
 
 export interface InProgress {
-  phase: 'part1' | 'part2' | 'part3'
+  phase: 'part1' | 'review1' | 'part2' | 'review2' | 'part3'
   draft: SessionDraft | null
   sessao: Sessao
   savedAt: string
@@ -16,7 +16,7 @@ export function saveInProgress(data: Omit<InProgress, 'savedAt'>) {
   } catch { /* quota/serialização — ignora */ }
 }
 
-const VALID_PHASES = ['part1', 'part2', 'part3']
+const VALID_PHASES = ['part1', 'review1', 'part2', 'review2', 'part3']
 
 // Valida a forma mínima necessária para retomar. Um snapshot corrompido ou de
 // uma versão antiga é tratado como inexistente (e limpo) para não mostrar um

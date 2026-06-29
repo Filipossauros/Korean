@@ -1,6 +1,6 @@
 import type { Perfil, Sessao, SessionDraft, UnidadeKSI, Dialogo } from '../types'
 import { generateSessionPrompt } from '../prompts/generate-session'
-import { correctSessionPrompt, correctFreeWritingPrompt } from '../prompts/correct-session'
+import { correctTranslationPrompt, correctProductionPrompt, correctFreeWritingPrompt } from '../prompts/correct-session'
 import { generateDialoguePrompt } from '../prompts/generate-dialogue'
 import { getSettings } from '../lib/settings'
 import { targetLanguageName } from '../lib/i18n'
@@ -94,15 +94,25 @@ export async function generateSession(perfil: Perfil, unidade: UnidadeKSI): Prom
   return parseJSON<SessionDraft>(text)
 }
 
-export async function correctSession(sessao: Sessao) {
-  const prompt = correctSessionPrompt(sessao, langName())
-  const text = await request({ model: model(), max_tokens: 4096, messages: [{ role: 'user', content: prompt }] })
+// Correção rápida só da tradução (Parte 1) — mostrada imediatamente.
+export async function correctTranslation(sessao: Sessao) {
+  const prompt = correctTranslationPrompt(sessao, langName())
+  const text = await request({ model: model(), max_tokens: 1536, messages: [{ role: 'user', content: prompt }] })
   return parseJSON<{
-    parte1: { pontuacao: number; correcao: string; erros: Sessao['parte1']['erros'] }
-    parte2: { pontuacao: number; frases: { correcto: boolean; tentativa: string; referencia: string; nota: string; categoria_erro: string }[] }
+    pontuacao: number
+    correcao: string
+    erros: Sessao['parte1']['erros']
+  }>(text)
+}
+
+// Correção só da produção (Parte 2).
+export async function correctProduction(sessao: Sessao) {
+  const prompt = correctProductionPrompt(sessao, langName())
+  const text = await request({ model: model(), max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
+  return parseJSON<{
+    pontuacao: number
+    frases: { correcto: boolean; nota: string; categoria_erro: string }[]
     estruturas_praticadas: string[]
-    vocabulario_novo: { kr: string; pt: string }[]
-    notas_gerais: string
   }>(text)
 }
 

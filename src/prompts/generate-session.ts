@@ -16,10 +16,10 @@ VOCABULÁRIO DA UNIDADE: ${JSON.stringify(unidade.palavras.slice(0, 10))}
 ESTRUTURAS DA UNIDADE: ${JSON.stringify(unidade.estruturas)}
 
 REGRAS:
-1. Parte 1 (leitura): texto 3-4 frases curtas, nível ligeiramente acima do actual, tema quotidiano real
+1. Parte 1 (leitura): texto 3-5 frases, nível ligeiramente acima do actual, tema quotidiano real
 2. Apresenta ANTES do texto: máx 3 palavras novas + 1 ponto gramatical novo
 3. Reutiliza obrigatoriamente 2 palavras das últimas 2 sessões (se existirem)
-4. Parte 2 (produção): 4 frases ${langName}→Coreano, nível actual, foco nas estruturas em progresso
+4. Parte 2 (produção): 6 frases ${langName}→Coreano, nível actual, foco nas estruturas em progresso
 5. As frases de produção devem partilhar o mesmo tema da leitura
 6. NUNCA introduzir vocabulário ou gramática fora do currículo KSI até ao nível actual
 7. Os campos "pt", "significado", "texto_referencia_pt" e "exemplo" devem estar em ${langName}

@@ -64,7 +64,7 @@ export function FreeChat({ nivel }: Props) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-24 md:pb-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-[calc(9rem+env(safe-area-inset-bottom))] md:pb-4">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-xs md:max-w-md rounded-2xl px-4 py-3 text-sm font-ui whitespace-pre-wrap ${
@@ -84,8 +84,8 @@ export function FreeChat({ nivel }: Props) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 md:relative px-4 py-3 bg-surface border-t border-line">
+      {/* Input — fica acima da barra de separadores (que inclui a safe-area no iPhone) */}
+      <div className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 md:relative z-50 px-4 py-3 bg-surface border-t border-line">
         <div className="max-w-2xl mx-auto flex gap-2">
           <input
             value={input}

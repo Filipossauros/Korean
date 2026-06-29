@@ -134,7 +134,10 @@ export default function App() {
   }
 
   const handleContinueSession = () => {
-    session.resume() // o efeito de fase navega para o ecrã certo
+    // o efeito de fase navega para o ecrã certo; se o snapshot for inválido,
+    // limpa o estado para o botão deixar de aparecer.
+    const ok = session.resume()
+    if (!ok) setResumable(false)
   }
 
   const handleNewSession = async () => {

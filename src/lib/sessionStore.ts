@@ -16,12 +16,32 @@ export function saveInProgress(data: Omit<InProgress, 'savedAt'>) {
   } catch { /* quota/serialização — ignora */ }
 }
 
+const VALID_PHASES = ['part1', 'part2', 'part3']
+
+// Valida a forma mínima necessária para retomar. Um snapshot corrompido ou de
+// uma versão antiga é tratado como inexistente (e limpo) para não mostrar um
+// botão "Continuar" que não faz nada.
+function isValid(data: unknown): data is InProgress {
+  if (!data || typeof data !== 'object') return false
+  const d = data as Record<string, unknown>
+  if (!VALID_PHASES.includes(d.phase as string)) return false
+  const s = d.sessao as Record<string, unknown> | undefined
+  if (!s || typeof s !== 'object' || !s.parte1 || !s.parte2) return false
+  return true
+}
+
 export function loadInProgress(): InProgress | null {
   const raw = localStorage.getItem(KEY)
   if (!raw) return null
   try {
-    return JSON.parse(raw) as InProgress
+    const parsed = JSON.parse(raw)
+    if (!isValid(parsed)) {
+      clearInProgress()
+      return null
+    }
+    return parsed
   } catch {
+    clearInProgress()
     return null
   }
 }
@@ -31,5 +51,6 @@ export function clearInProgress() {
 }
 
 export function hasInProgress(): boolean {
-  return !!localStorage.getItem(KEY)
+  // Verifica que o snapshot é realmente retomável, não apenas que a chave existe.
+  return loadInProgress() !== null
 }

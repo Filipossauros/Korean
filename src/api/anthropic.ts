@@ -4,6 +4,7 @@ import { correctTranslationPrompt, correctProductionPrompt, correctFreeWritingPr
 import { generateDialoguePrompt } from '../prompts/generate-dialogue'
 import { getSettings } from '../lib/settings'
 import { targetLanguageName } from '../lib/i18n'
+import { readingSentences } from '../lib/progression'
 
 const API_URL = 'https://api.anthropic.com/v1/messages'
 
@@ -89,8 +90,8 @@ function parseJSON<T>(text: string): T {
 }
 
 export async function generateSession(perfil: Perfil, unidade: UnidadeKSI): Promise<SessionDraft> {
-  const prompt = generateSessionPrompt(perfil, unidade, langName())
-  const text = await request({ model: model(), max_tokens: 4096, messages: [{ role: 'user', content: prompt }] })
+  const prompt = generateSessionPrompt(perfil, unidade, langName(), readingSentences(perfil))
+  const text = await request({ model: model(), max_tokens: 6144, messages: [{ role: 'user', content: prompt }] })
   return parseJSON<SessionDraft>(text)
 }
 
@@ -116,9 +117,9 @@ export async function correctProduction(sessao: Sessao) {
   }>(text)
 }
 
-export async function generateDialogue(nivel: string, unidade: UnidadeKSI): Promise<Dialogo> {
-  const prompt = generateDialoguePrompt(nivel, unidade, langName())
-  const text = await request({ model: model(), max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
+export async function generateDialogue(nivel: string, unidade: UnidadeKSI, turns?: string): Promise<Dialogo> {
+  const prompt = generateDialoguePrompt(nivel, unidade, langName(), turns)
+  const text = await request({ model: model(), max_tokens: 4096, messages: [{ role: 'user', content: prompt }] })
   return parseJSON<Dialogo>(text)
 }
 

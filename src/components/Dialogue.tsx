@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
-import type { Dialogo } from '../types'
+import type { Dialogo, Perfil } from '../types'
 import { generateDialogue } from '../api/anthropic'
 import { getUnidade } from '../lib/curriculum'
+import { dialogueTurns } from '../lib/progression'
 import { speakKorean, stopSpeaking, canSpeak, hasKoreanVoice } from '../lib/tts'
 import { useT } from '../lib/i18n'
 import { useSettings } from '../lib/settings'
 import { romanize } from '../lib/romanize'
 import { SpeakerIcon, MessageIcon } from './Icons'
 
-export function Dialogue({ nivel }: { nivel: string }) {
+export function Dialogue({ nivel, perfil }: { nivel: string; perfil: Perfil }) {
   const t = useT()
   const { romanization } = useSettings()
   const [dialogo, setDialogo] = useState<Dialogo | null>(null)
@@ -23,7 +24,7 @@ export function Dialogue({ nivel }: { nivel: string }) {
   const generate = async () => {
     setLoading(true); setError(''); stopSpeaking(); setPlaying(false); setActiveLine(-1)
     try {
-      const d = await generateDialogue(nivel, getUnidade(nivel))
+      const d = await generateDialogue(nivel, getUnidade(nivel), dialogueTurns(perfil))
       setDialogo(d)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro')

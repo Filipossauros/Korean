@@ -209,7 +209,7 @@ export default function App() {
           />
         ) : null
       case 'dialogue':
-        return <Dialogue nivel={perfil.nivel_atual} />
+        return <Dialogue nivel={perfil.nivel_atual} perfil={perfil} />
       case 'free-writing':
         return session.sessao ? (
           <FreeWriting

@@ -1,6 +1,6 @@
 import type { Perfil, UnidadeKSI } from '../types'
 
-export function generateSessionPrompt(perfil: Perfil, unidade: UnidadeKSI, langName: string): string {
+export function generateSessionPrompt(perfil: Perfil, unidade: UnidadeKSI, langName: string, readingLen = '3-5'): string {
   return `És um professor de coreano especializado no currículo King Sejong Institute.
 A língua de apoio do utilizador é ${langName} — TODAS as traduções, explicações e frases na língua de apoio devem estar em ${langName}.
 
@@ -16,7 +16,7 @@ VOCABULÁRIO DA UNIDADE: ${JSON.stringify(unidade.palavras.slice(0, 10))}
 ESTRUTURAS DA UNIDADE: ${JSON.stringify(unidade.estruturas)}
 
 REGRAS:
-1. Parte 1 (leitura): texto 3-5 frases, nível ligeiramente acima do actual, tema quotidiano real
+1. Parte 1 (leitura): texto ${readingLen} frases, nível ligeiramente acima do actual, tema quotidiano real
 2. Apresenta ANTES do texto: máx 3 palavras novas + 1 ponto gramatical novo
 3. Reutiliza obrigatoriamente 2 palavras das últimas 2 sessões (se existirem)
 4. Parte 2 (produção): 6 frases ${langName}→Coreano, nível actual, foco nas estruturas em progresso

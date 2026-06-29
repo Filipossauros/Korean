@@ -245,6 +245,12 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-paper">
+      {/* Máscara opaca sobre a status bar (relógio/bateria) no iPhone, para o
+          conteúdo nunca aparecer por baixo do relógio ao fazer scroll. */}
+      <div
+        className="fixed top-0 left-0 right-0 z-[60] bg-paper pointer-events-none md:hidden"
+        style={{ height: 'env(safe-area-inset-top)' }}
+      />
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-56 bg-ink shrink-0 py-6 px-3">
         <div className="px-3 mb-8">

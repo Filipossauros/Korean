@@ -45,12 +45,16 @@ export function SessionReading({ draft, onSubmit, showTimer, initialValue = '' }
         {/* Vocab + grammar box */}
         <div className="bg-ink/5 rounded-2xl p-4 mb-6 border border-line">
           <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-3">{t('session.newVocab')}</h2>
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-4">
             {draft.parte1.vocabulario_novo.map(v => (
-              <div key={v.kr} className="flex gap-3 items-baseline">
-                <span className="font-serif text-lg text-fg font-semibold">{v.kr}</span>
-                <span className="text-fg/60 font-ui text-sm">— {v.pt}</span>
-                {v.exemplo && <span className="text-fg/30 font-ui text-xs hidden sm:inline">{v.exemplo}</span>}
+              <div key={v.kr} className="flex flex-col">
+                <div className="flex gap-2 items-baseline flex-wrap">
+                  <span className="font-serif text-lg text-fg font-semibold">{v.kr}</span>
+                  <span className="text-fg/60 font-ui text-sm">{v.pt}</span>
+                </div>
+                {v.exemplo && (
+                  <p className="text-fg/40 font-ui text-xs mt-0.5 leading-snug">{v.exemplo}</p>
+                )}
               </div>
             ))}
           </div>

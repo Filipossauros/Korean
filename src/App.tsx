@@ -88,36 +88,39 @@ export default function App() {
     else if (session.phase === 'part2') setView('session-writing')
     else if (session.phase === 'part3') setView('free-writing')
     else if (session.phase === 'done') {
-      if (session.sessao) {
-        setPerfil(prev => {
-          const today = new Date().toISOString().slice(0, 10)
-          const lastDay = prev.ultima_sessao.slice(0, 10)
-          const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-          const newStreak = lastDay === yesterday ? prev.streak + 1 : lastDay === today ? prev.streak : 1
-          const existingKr = new Set(prev.vocabulario_visto.map(v => v.kr))
-          const newVocab = session.sessao!.vocabulario_novo.filter(v => !existingKr.has(v.kr))
-          const existingFormas = new Set(prev.estruturas.map(e => e.forma))
-          const newEstruturas = session.sessao!.estruturas_praticadas
-            .filter(f => !existingFormas.has(f))
-            .map(f => ({
-              forma: f,
-              estado: 'em_progresso' as const,
-              acertos_consecutivos: 0,
-              apareceu_em_livre: false,
-              ultima_vez: today,
-            }))
-          const updated = {
-            ...prev,
-            streak: newStreak,
-            ultima_sessao: new Date().toISOString(),
-            sessoes_realizadas: prev.sessoes_realizadas + 1,
-            vocabulario_visto: [...prev.vocabulario_visto, ...newVocab],
-            estruturas: [...prev.estruturas, ...newEstruturas],
-          }
-          backup(updated, [...sessoes])
-          return updated
+      const finished = session.sessao
+      if (finished) {
+        const today = new Date().toISOString().slice(0, 10)
+        const lastDay = perfil.ultima_sessao.slice(0, 10)
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+        const newStreak = lastDay === yesterday ? perfil.streak + 1 : lastDay === today ? perfil.streak : 1
+        const existingKr = new Set(perfil.vocabulario_visto.map(v => v.kr))
+        const newVocab = finished.vocabulario_novo.filter(v => !existingKr.has(v.kr))
+        const existingFormas = new Set(perfil.estruturas.map(e => e.forma))
+        const newEstruturas = finished.estruturas_praticadas
+          .filter(f => !existingFormas.has(f))
+          .map(f => ({
+            forma: f,
+            estado: 'em_progresso' as const,
+            acertos_consecutivos: 0,
+            apareceu_em_livre: false,
+            ultima_vez: today,
+          }))
+        const updated = {
+          ...perfil,
+          streak: newStreak,
+          ultima_sessao: new Date().toISOString(),
+          sessoes_realizadas: perfil.sessoes_realizadas + 1,
+          vocabulario_visto: [...perfil.vocabulario_visto, ...newVocab],
+          estruturas: [...perfil.estruturas, ...newEstruturas],
+        }
+        setPerfil(() => updated)
+        // A sessão já foi gravada no IndexedDB; lê a lista fresca (que inclui a
+        // sessão acabada de terminar) e só depois faz backup ao Drive.
+        getSessoes().then(fresh => {
+          setSessoes(fresh)
+          backup(updated, fresh)
         })
-        refreshSessoes()
       }
       session.reset()
       setView('dashboard')

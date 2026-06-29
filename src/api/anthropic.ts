@@ -1,6 +1,7 @@
-import type { Perfil, Sessao, SessionDraft, UnidadeKSI } from '../types'
+import type { Perfil, Sessao, SessionDraft, UnidadeKSI, Dialogo } from '../types'
 import { generateSessionPrompt } from '../prompts/generate-session'
 import { correctSessionPrompt, correctFreeWritingPrompt } from '../prompts/correct-session'
+import { generateDialoguePrompt } from '../prompts/generate-dialogue'
 import { getSettings } from '../lib/settings'
 import { targetLanguageName } from '../lib/i18n'
 
@@ -103,6 +104,12 @@ export async function correctSession(sessao: Sessao) {
     vocabulario_novo: { kr: string; pt: string }[]
     notas_gerais: string
   }>(text)
+}
+
+export async function generateDialogue(nivel: string, unidade: UnidadeKSI): Promise<Dialogo> {
+  const prompt = generateDialoguePrompt(nivel, unidade, langName())
+  const text = await request({ model: model(), max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
+  return parseJSON<Dialogo>(text)
 }
 
 export async function correctFreeWriting(tema: string, texto: string, nivel: string) {

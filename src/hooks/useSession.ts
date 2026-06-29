@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import type { Sessao, SessionDraft, Perfil, UnidadeKSI } from '../types'
 import { generateSession, correctSession } from '../api/anthropic'
 import { saveSessao } from '../db'
+import { saveInProgress, clearInProgress, loadInProgress } from '../lib/sessionStore'
 
 export type SessionPhase =
   | 'idle'
@@ -20,6 +21,17 @@ export function useSession() {
   const [error, setError] = useState<string | null>(null)
   const timerRef = useRef<number>(0)
   const startTimeRef = useRef<number>(0)
+
+  // Persiste a sessão em curso sempre que muda, para sobreviver a sair/recarregar.
+  useEffect(() => {
+    if (!sessao) return
+    const stable = phase === 'correcting' || phase === 'generating' ? 'part1'
+      : phase === 'correcting2' ? 'part2'
+      : phase
+    if (stable === 'part1' || stable === 'part2' || stable === 'part3') {
+      saveInProgress({ phase: stable, draft, sessao })
+    }
+  }, [phase, draft, sessao])
 
   const startTimer = useCallback(() => {
     startTimeRef.current = Date.now()
@@ -147,6 +159,7 @@ export function useSession() {
       return
     }
     await saveSessao(sessao)
+    clearInProgress()
     setPhase('done')
   }, [sessao])
 
@@ -158,9 +171,11 @@ export function useSession() {
     }
     setSessao(updated)
     await saveSessao(updated)
+    clearInProgress()
     setPhase('done')
   }, [sessao])
 
+  // Pausa: limpa o estado em memória mas mantém o snapshot persistido (retomável).
   const reset = useCallback(() => {
     setPhase('idle')
     setDraft(null)
@@ -169,9 +184,27 @@ export function useSession() {
     timerRef.current = 0
   }, [])
 
+  // Termina/descarta: limpa também o snapshot persistido.
+  const discard = useCallback(() => {
+    clearInProgress()
+    reset()
+  }, [reset])
+
+  // Retoma uma sessão em curso guardada.
+  const resume = useCallback(() => {
+    const snap = loadInProgress()
+    if (!snap) return false
+    setDraft(snap.draft)
+    setSessao(snap.sessao)
+    setError(null)
+    setPhase(snap.phase)
+    startTimer()
+    return true
+  }, [startTimer])
+
   return {
     phase, draft, sessao, error,
     startSession, submitPart1, applyCorrection1, submitPart2,
-    finishSession, applyPart3, reset
+    finishSession, applyPart3, reset, discard, resume
   }
 }

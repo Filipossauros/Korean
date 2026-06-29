@@ -6,12 +6,15 @@ import { useT } from '../lib/i18n'
 interface Props {
   perfil: Perfil
   sessoes: Sessao[]
+  resumable: boolean
   onStart: () => void
+  onContinue: () => void
+  onNew: () => void
   onNav: (view: string) => void
   onOpenSession: (s: Sessao) => void
 }
 
-export function Dashboard({ perfil, sessoes, onStart, onNav, onOpenSession }: Props) {
+export function Dashboard({ perfil, sessoes, resumable, onStart, onContinue, onNew, onNav, onOpenSession }: Props) {
   const t = useT()
   const today = new Date().toISOString().slice(0, 10)
   const didToday = perfil.ultima_sessao.slice(0, 10) === today
@@ -62,16 +65,40 @@ export function Dashboard({ perfil, sessoes, onStart, onNav, onOpenSession }: Pr
         </div>
 
         {/* CTA */}
+        {resumable ? (
+          <div className="mb-6 space-y-2">
+            <button
+              onClick={onContinue}
+              className="w-full py-5 rounded-2xl font-ui font-semibold text-lg bg-jade text-white shadow-lg shadow-jade/30 active:scale-95 transition-all"
+            >
+              {t('dash.continueSession')}
+            </button>
+            <button
+              onClick={onNew}
+              className="w-full py-3 rounded-2xl font-ui font-medium text-sm border border-line text-fg/60 active:scale-95 transition-all"
+            >
+              {t('dash.newSession')}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onStart}
+            className={`w-full py-5 rounded-2xl font-ui font-semibold text-lg mb-6 transition-all active:scale-95 ${
+              didToday
+                ? 'bg-paper-2 text-fg/40 border border-line'
+                : 'bg-vermillion text-white shadow-lg shadow-vermillion/30'
+            }`}
+          >
+            {didToday ? t('dash.doneToday') : t('dash.startToday')}
+          </button>
+        )}
+
+        {/* Diálogos */}
         <button
-          onClick={onStart}
-          className={`w-full py-5 rounded-2xl font-ui font-semibold text-lg mb-6 transition-all active:scale-95 ${
-            didToday
-              ? 'bg-paper-2 text-fg/40 border border-line cursor-default'
-              : 'bg-vermillion text-white shadow-lg shadow-vermillion/30'
-          }`}
-          disabled={false}
+          onClick={() => onNav('dialogue')}
+          className="w-full py-3 rounded-2xl bg-gold/10 text-gold font-ui font-medium mb-6 border border-gold/20 text-sm"
         >
-          {didToday ? t('dash.doneToday') : t('dash.startToday')}
+          {t('dash.listenDialogue')}
         </button>
 
         {/* Structures overview */}

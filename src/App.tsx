@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { AppView, Sessao, UnidadeKSI } from './types'
+import type { AppView, Sessao } from './types'
 import { useProfile } from './hooks/useProfile'
 import { useSession } from './hooks/useSession'
 import { useBackup } from './hooks/useBackup'
@@ -9,7 +9,7 @@ import {
   isGoogleConfigured, readConfigFromDrive, restoreProgressFromDrive,
   disconnectGoogle, initiateGoogleAuth
 } from './api/google-drive'
-import curriculo from './data/ksi_curriculo_completo.json'
+import { getUnidade } from './lib/curriculum'
 
 import { Dashboard } from './components/Dashboard'
 import { SessionReading } from './components/SessionReading'
@@ -23,40 +23,13 @@ import { Settings } from './components/Settings'
 import { Welcome } from './components/Welcome'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { SessionDetail } from './components/SessionDetail'
+import { Dialogue } from './components/Dialogue'
 import { useT } from './lib/i18n'
 import { useSettings } from './lib/settings'
+import { hasInProgress } from './lib/sessionStore'
 import {
-  HomeIcon, LayersIcon, BarChartIcon, MessageIcon, SettingsIcon
+  HomeIcon, LayersIcon, BarChartIcon, MessageIcon, SettingsIcon, SpeakerIcon
 } from './components/Icons'
-
-type CurriculoData = {
-  curriculo: Record<string, {
-    vocabulario: Record<string, { tema: string; palavras: { kr: string; pt?: string; en?: string; exemplo?: string }[] }>
-    estruturas_gramaticais?: Record<string, { estruturas: { forma: string; significado: string; exemplo: string }[] }>
-  }>
-}
-
-function getUnidade(nivel: string): UnidadeKSI {
-  const data = curriculo as unknown as CurriculoData
-  const nivelData = data.curriculo[nivel]
-  if (!nivelData) {
-    return { tema: 'Vocabulário geral', palavras: [], estruturas: [] }
-  }
-  const vocabKeys = Object.keys(nivelData.vocabulario ?? {})
-  const randomKey = vocabKeys[Math.floor(Math.random() * vocabKeys.length)]
-  const unidade = nivelData.vocabulario?.[randomKey]
-  const estruturasAll: { forma: string; significado: string; exemplo: string }[] = []
-  if (nivelData.estruturas_gramaticais) {
-    for (const sec of Object.values(nivelData.estruturas_gramaticais)) {
-      estruturasAll.push(...sec.estruturas)
-    }
-  }
-  return {
-    tema: unidade?.tema ?? 'Vocabulário geral',
-    palavras: unidade?.palavras ?? [],
-    estruturas: estruturasAll,
-  }
-}
 
 export default function App() {
   const [view, setView] = useState<AppView>('dashboard')
@@ -152,9 +125,26 @@ export default function App() {
     }
   }, [session.phase]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [resumable, setResumable] = useState(hasInProgress())
+  useEffect(() => { setResumable(hasInProgress()) }, [view, session.phase])
+
   const handleStartSession = async () => {
     const unidade = getUnidade(perfil.nivel_atual)
     await session.startSession(perfil, unidade)
+  }
+
+  const handleContinueSession = () => {
+    session.resume() // o efeito de fase navega para o ecrã certo
+  }
+
+  const handleNewSession = async () => {
+    session.discard()
+    await handleStartSession()
+  }
+
+  const handleTerminate = () => {
+    session.discard()
+    setView('dashboard')
   }
 
   const handleCorrection = async () => {
@@ -181,12 +171,22 @@ export default function App() {
   const renderContent = () => {
     switch (view) {
       case 'dashboard':
-        return <Dashboard perfil={perfil} sessoes={sessoes} onStart={handleStartSession} onNav={v => setView(v as AppView)} onOpenSession={s => { setDetailSession(s); setView('session-detail') }} />
+        return <Dashboard
+          perfil={perfil}
+          sessoes={sessoes}
+          resumable={resumable}
+          onStart={handleStartSession}
+          onContinue={handleContinueSession}
+          onNew={handleNewSession}
+          onNav={v => setView(v as AppView)}
+          onOpenSession={s => { setDetailSession(s); setView('session-detail') }}
+        />
       case 'session-reading':
         return session.draft ? (
           <SessionReading
             draft={session.draft}
             showTimer={showTimer}
+            initialValue={session.sessao?.parte1.traducao_utilizador ?? ''}
             onSubmit={traducao => { session.submitPart1(traducao); handleCorrection() }}
           />
         ) : null
@@ -207,6 +207,8 @@ export default function App() {
             onSubmit={respostas => { session.submitPart2(respostas); handleCorrection() }}
           />
         ) : null
+      case 'dialogue':
+        return <Dialogue nivel={perfil.nivel_atual} />
       case 'free-writing':
         return session.sessao ? (
           <FreeWriting
@@ -253,6 +255,7 @@ export default function App() {
             { id: 'dashboard', label: t('nav.home'), Icon: HomeIcon },
             { id: 'vocabulary', label: t('nav.vocab'), Icon: LayersIcon },
             { id: 'progress', label: t('nav.progress'), Icon: BarChartIcon },
+            { id: 'dialogue', label: t('nav.dialogue'), Icon: SpeakerIcon },
             { id: 'free-chat', label: t('nav.chat'), Icon: MessageIcon },
             { id: 'settings', label: t('nav.settings'), Icon: SettingsIcon },
           ].map(({ id, label, Icon }) => (
@@ -277,7 +280,10 @@ export default function App() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto relative">
+      <main
+        className="flex-1 overflow-y-auto relative"
+        style={{ paddingTop: isSessionActive ? 'calc(env(safe-area-inset-top) + 3.25rem)' : 'env(safe-area-inset-top)' }}
+      >
         {session.error && (
           <div className="bg-vermillion/10 border-b border-vermillion/20 px-4 py-2 sticky top-0 z-30">
             <p className="text-vermillion text-sm font-ui">{session.error}</p>
@@ -305,14 +311,25 @@ export default function App() {
         </nav>
       )}
 
-      {/* Back from session */}
+      {/* Session action bar: Sair (pausa, mantém) + Terminar (descarta) */}
       {isSessionActive && (
-        <button
-          onClick={() => { session.reset(); setView('dashboard') }}
-          className="fixed top-4 left-4 z-50 md:hidden bg-surface border border-line rounded-xl px-3 py-1.5 text-xs font-ui text-fg/60 shadow-sm"
+        <div
+          className="fixed left-4 right-4 z-50 flex justify-between"
+          style={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
         >
-          {t('common.back')}
-        </button>
+          <button
+            onClick={() => { session.reset(); setView('dashboard') }}
+            className="bg-surface border border-line rounded-xl px-3 py-1.5 text-xs font-ui text-fg/60 shadow-sm"
+          >
+            {t('common.back')}
+          </button>
+          <button
+            onClick={handleTerminate}
+            className="bg-surface border border-vermillion/30 rounded-xl px-3 py-1.5 text-xs font-ui text-vermillion shadow-sm"
+          >
+            {t('session.terminate')}
+          </button>
+        </div>
       )}
     </div>
   )

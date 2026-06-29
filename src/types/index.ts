@@ -80,6 +80,18 @@ export interface Sessao {
   estruturas_praticadas: string[]
 }
 
+export interface DialogoLinha {
+  falante: 'A' | 'B'
+  kr: string
+  traducao: string
+  romanizacao?: string
+}
+
+export interface Dialogo {
+  tema: string
+  linhas: DialogoLinha[]
+}
+
 export interface UnidadeKSI {
   tema: string
   palavras: { kr: string; pt?: string; en?: string; exemplo?: string }[]
@@ -109,4 +121,5 @@ export type AppView =
   | 'vocabulary'
   | 'progress'
   | 'free-chat'
+  | 'dialogue'
   | 'settings'

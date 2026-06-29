@@ -10,12 +10,13 @@ interface Props {
   draft: SessionDraft
   onSubmit: (traducao: string) => void
   showTimer: boolean
+  initialValue?: string
 }
 
-export function SessionReading({ draft, onSubmit, showTimer }: Props) {
+export function SessionReading({ draft, onSubmit, showTimer, initialValue = '' }: Props) {
   const t = useT()
   const { romanization } = useSettings()
-  const [traducao, setTraducao] = useState('')
+  const [traducao, setTraducao] = useState(initialValue)
   const [elapsed, setElapsed] = useState(0)
   const startRef = useRef(Date.now())
 

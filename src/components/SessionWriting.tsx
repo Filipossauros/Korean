@@ -16,7 +16,7 @@ interface Props {
 export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
   const t = useT()
   const { romanization } = useSettings()
-  const [respostas, setRespostas] = useState<string[]>(frases.map(() => ''))
+  const [respostas, setRespostas] = useState<string[]>(frases.map(f => f.kr_utilizador || ''))
   const [current, setCurrent] = useState(0)
   const [showDicas, setShowDicas] = useState(false)
   const [elapsed, setElapsed] = useState(0)

@@ -4,6 +4,7 @@ import { BookIcon, SpeakerIcon } from './Icons'
 import { speakKorean, canSpeak } from '../lib/tts'
 import { romanize } from '../lib/romanize'
 import { useSettings } from '../lib/settings'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -29,8 +30,9 @@ export function SessionReading({ draft, onSubmit, showTimer, initialValue = '' }
   const fmt = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">

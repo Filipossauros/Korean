@@ -4,6 +4,7 @@ import { LayersIcon, CheckIcon, XIcon, SpeakerIcon } from './Icons'
 import { speakKorean, canSpeak } from '../lib/tts'
 import { romanize } from '../lib/romanize'
 import { useSettings } from '../lib/settings'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -49,14 +50,14 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
           <p className="text-fg/50 font-ui mt-1 text-sm">
             {due.length === 0 ? t('vocab.noneToday') : t('vocab.reviewed').replace('{n}', String(due.length))}
           </p>
-          <div className="mt-6 text-left bg-surface rounded-2xl p-4 border border-line max-w-xs mx-auto">
-            <p className="text-xs text-fg/40 font-ui uppercase tracking-wide mb-3">{t('vocab.all')}</p>
+          <div className="pop mt-6 text-left bg-surface rounded-2xl p-4 max-w-xs mx-auto">
+            <p className="font-display text-[11px] text-fg/60 mb-3">{t('vocab.all')}</p>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {perfil.vocabulario_visto.map(v => (
-                <div key={v.kr} className="flex justify-between text-sm">
-                  <span className="font-serif text-fg">{v.kr}</span>
-                  <span className="text-fg/50 font-ui">{v.pt}</span>
-                  <span className={`text-xs font-ui ${v.srs_nivel === 3 ? 'text-jade' : v.srs_nivel === 2 ? 'text-gold' : 'text-vermillion'}`}>
+                <div key={v.kr} className="flex justify-between items-center text-sm gap-2">
+                  <span className="font-kr text-fg">{v.kr}</span>
+                  <span className="text-fg/50 font-ui flex-1">{v.pt}</span>
+                  <span className={`pop-sm text-[10px] font-display rounded px-1.5 py-0.5 text-ink ${v.srs_nivel === 3 ? 'bg-jade' : v.srs_nivel === 2 ? 'bg-gold' : 'bg-vermillion text-white'}`}>
                     N{v.srs_nivel}
                   </span>
                 </div>
@@ -96,23 +97,24 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-md mx-auto px-4 py-6">
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-md mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <LayersIcon size={20} />
-            <h1 className="font-ui font-semibold text-fg">{t('vocab.title')}</h1>
+          <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">
+            <LayersIcon size={18} />
+            <span className="font-display text-xs">{t('vocab.title')}</span>
           </div>
-          <span className="text-sm text-fg/40 font-ui">{idx + 1}/{due.length}</span>
+          <span className="font-display text-sm text-fg/60">{idx + 1}/{due.length}</span>
         </div>
 
-        <div className="w-full h-1 bg-line rounded-full mb-8">
-          <div className="h-1 bg-jade rounded-full transition-all" style={{ width: `${(idx / due.length) * 100}%` }} />
+        <div className="w-full h-2.5 bg-surface rounded-full mb-8 border-2 border-ink overflow-hidden">
+          <div className="h-full bg-jade transition-all" style={{ width: `${(idx / due.length) * 100}%` }} />
         </div>
 
         {/* Card */}
         <div
-          className="bg-surface rounded-3xl border border-line shadow-sm p-8 text-center cursor-pointer select-none mb-6 min-h-48 flex flex-col justify-center"
+          className="pop pop-shadow-jade tilt-r bg-surface rounded-3xl p-8 text-center cursor-pointer select-none mb-6 min-h-48 flex flex-col justify-center"
           onClick={() => setFlipped(f => !f)}
         >
           {!flipped ? (
@@ -128,15 +130,15 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
             </>
           ) : (
             <>
-              <p className="font-serif text-3xl text-fg mb-2">{card.pt}</p>
-              <p className="font-serif text-xl text-fg/40 mb-1">{card.kr}</p>
+              <p className="font-ui font-bold text-3xl text-fg mb-2">{card.pt}</p>
+              <p className="font-kr text-xl text-fg/50 mb-1">{card.kr}</p>
               {romanization && <p className="text-xs text-fg/40 italic mb-3">{romanize(card.kr)}</p>}
-              <div className="flex gap-2 justify-center mt-2">
-                <span className={`text-xs px-2 py-0.5 rounded font-ui ${
-                  card.srs_nivel === 3 ? 'bg-jade/10 text-jade' :
-                  card.srs_nivel === 2 ? 'bg-gold/10 text-gold' : 'bg-vermillion/10 text-vermillion'
+              <div className="flex gap-2 justify-center items-center mt-2">
+                <span className={`pop-sm text-[10px] px-2 py-0.5 rounded-lg font-display text-ink ${
+                  card.srs_nivel === 3 ? 'bg-jade' :
+                  card.srs_nivel === 2 ? 'bg-gold' : 'bg-vermillion text-white'
                 }`}>N{card.srs_nivel}</span>
-                <span className="text-xs text-fg/30 font-ui">{t('vocab.seen')} {card.vezes_visto}×</span>
+                <span className="text-xs text-fg/40 font-ui">{t('vocab.seen')} {card.vezes_visto}×</span>
               </div>
             </>
           )}
@@ -146,13 +148,13 @@ export function Vocabulary({ perfil, onUpdate }: Props) {
           <div className="flex gap-4">
             <button
               onClick={() => answer(false)}
-              className="flex-1 py-4 rounded-2xl border border-vermillion/30 text-vermillion font-ui font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all"
+              className="pop flex-1 py-4 rounded-2xl bg-vermillion text-white font-display text-sm flex items-center justify-center gap-2 active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               <XIcon size={18} /> {t('vocab.wrong')}
             </button>
             <button
               onClick={() => answer(true)}
-              className="flex-1 py-4 rounded-2xl border border-jade/30 text-jade font-ui font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all"
+              className="pop flex-1 py-4 rounded-2xl bg-jade text-ink font-display text-sm flex items-center justify-center gap-2 active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               <CheckIcon size={18} /> {t('vocab.right')}
             </button>

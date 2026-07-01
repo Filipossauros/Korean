@@ -1,5 +1,6 @@
 import type { Sessao } from '../types'
 import { CheckIcon, XIcon } from './Icons'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -29,8 +30,9 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
   const pct = Math.round((total / max) * 100)
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6">
         {/* Score summary — escondido enquanto a Parte 1 ainda está a corrigir */}
         {!(isPart1 && loading) && (
           <div className="pop pop-shadow-jade tilt-r rounded-2xl bg-ink p-5 mb-6 text-center">

@@ -3,6 +3,7 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
 import { BarChartIcon } from './Icons'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -30,11 +31,14 @@ export function Progress({ sessoes, perfil }: Props) {
   const consolidado = perfil.vocabulario_visto.filter(v => v.srs_nivel === 3).length
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <BarChartIcon size={20} />
-          <h1 className="font-ui font-semibold text-fg">{t('nav.progress')}</h1>
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6">
+        <div className="mb-6">
+          <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">
+            <BarChartIcon size={18} />
+            <span className="font-display text-xs">{t('nav.progress')}</span>
+          </div>
         </div>
 
         {/* Stats grid */}
@@ -47,9 +51,9 @@ export function Progress({ sessoes, perfil }: Props) {
             { label: t('prog.inProgress'), value: emProgresso, color: 'text-gold' },
             { label: t('prog.currentStreak'), value: perfil.streak, color: 'text-vermillion' },
           ].map(({ label, value, color }) => (
-            <div key={label} className="bg-surface rounded-2xl p-4 border border-line">
-              <p className={`text-3xl font-bold font-ui ${color}`}>{value}</p>
-              <p className="text-xs text-fg/50 font-ui mt-0.5">{label}</p>
+            <div key={label} className="pop rounded-2xl bg-surface p-4">
+              <p className={`text-3xl font-display ${color}`}>{value}</p>
+              <p className="text-xs text-fg/60 font-ui font-medium mt-0.5">{label}</p>
             </div>
           ))}
         </div>
@@ -57,35 +61,35 @@ export function Progress({ sessoes, perfil }: Props) {
         {sessoes.length > 1 ? (
           <>
             {/* Score chart */}
-            <div className="bg-surface rounded-2xl p-4 border border-line mb-4">
-              <h2 className="font-ui text-sm font-semibold text-fg mb-4">{t('prog.scorePerSession')}</h2>
+            <div className="pop rounded-2xl bg-surface p-4 mb-4">
+              <h2 className="font-display text-xs text-fg mb-4">{t('prog.scorePerSession')}</h2>
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={scoreData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#DDDDD5" />
-                  <XAxis dataKey="data" tick={{ fontSize: 10, fontFamily: 'Inter' }} />
-                  <YAxis domain={[0, 20]} tick={{ fontSize: 10, fontFamily: 'Inter' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#94908a55" />
+                  <XAxis dataKey="data" tick={{ fontSize: 10, fontFamily: 'Fredoka', fill: '#94908a' }} />
+                  <YAxis domain={[0, 20]} tick={{ fontSize: 10, fontFamily: 'Fredoka', fill: '#94908a' }} />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, fontFamily: 'Inter', borderColor: '#DDDDD5' }}
+                    contentStyle={{ fontSize: 12, fontFamily: 'Fredoka', borderColor: '#17282B', borderWidth: 2, borderRadius: 12 }}
                     formatter={(v) => [`${v ?? 0}/20`, t('prog.score')]}
                   />
-                  <Bar dataKey="score" fill="#2E7D6B" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="score" fill="#16C1B0" stroke="#17282B" strokeWidth={2} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* Time chart */}
-            <div className="bg-surface rounded-2xl p-4 border border-line mb-6">
-              <h2 className="font-ui text-sm font-semibold text-fg mb-4">{t('prog.avgTime')}</h2>
+            <div className="pop rounded-2xl bg-surface p-4 mb-6">
+              <h2 className="font-display text-xs text-fg mb-4">{t('prog.avgTime')}</h2>
               <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={timeData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#DDDDD5" />
-                  <XAxis dataKey="data" tick={{ fontSize: 10, fontFamily: 'Inter' }} />
-                  <YAxis tick={{ fontSize: 10, fontFamily: 'Inter' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#94908a55" />
+                  <XAxis dataKey="data" tick={{ fontSize: 10, fontFamily: 'Fredoka', fill: '#94908a' }} />
+                  <YAxis tick={{ fontSize: 10, fontFamily: 'Fredoka', fill: '#94908a' }} />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, fontFamily: 'Inter', borderColor: '#DDDDD5' }}
+                    contentStyle={{ fontSize: 12, fontFamily: 'Fredoka', borderColor: '#17282B', borderWidth: 2, borderRadius: 12 }}
                     formatter={(v) => [`${v ?? 0} min`, t('prog.time')]}
                   />
-                  <Line type="monotone" dataKey="tempo" stroke="#C9A12E" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="tempo" stroke="#FF6A4D" strokeWidth={4} dot={{ r: 4, fill: '#FF6A4D', stroke: '#17282B', strokeWidth: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -98,16 +102,16 @@ export function Progress({ sessoes, perfil }: Props) {
 
         {/* Structures list */}
         {perfil.estruturas.length > 0 && (
-          <div className="bg-surface rounded-2xl p-4 border border-line">
-            <h2 className="font-ui text-sm font-semibold text-fg mb-3">{t('prog.grammarStructures')}</h2>
-            <div className="space-y-2">
+          <div className="pop rounded-2xl bg-surface p-4">
+            <h2 className="font-display text-xs text-fg mb-3">{t('prog.grammarStructures')}</h2>
+            <div className="space-y-2.5">
               {perfil.estruturas.map(e => (
-                <div key={e.forma} className="flex items-center justify-between">
-                  <span className="font-serif text-sm text-fg">{e.forma}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-lg font-ui ${
-                    e.estado === 'dominada' ? 'bg-jade/10 text-jade' :
-                    e.estado === 'em_progresso' ? 'bg-gold/10 text-gold' :
-                    'bg-line text-fg/40'
+                <div key={e.forma} className="flex items-center justify-between gap-2">
+                  <span className="font-kr text-sm text-fg">{e.forma}</span>
+                  <span className={`pop-sm text-[10px] px-2 py-0.5 rounded-lg font-display shrink-0 ${
+                    e.estado === 'dominada' ? 'bg-jade text-ink' :
+                    e.estado === 'em_progresso' ? 'bg-gold text-ink' :
+                    'bg-surface-2 text-fg/50'
                   }`}>
                     {e.estado === 'dominada' ? t('prog.mastered') : e.estado === 'em_progresso' ? t('prog.inProgress') : t('prog.toWork')}
                   </span>

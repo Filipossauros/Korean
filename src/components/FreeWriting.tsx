@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { correctFreeWriting } from '../api/anthropic'
 import { PencilIcon, CheckIcon } from './Icons'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -37,16 +38,19 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <PencilIcon size={20} />
-          <h1 className="font-ui font-semibold text-fg">{t('session.freeWriting')}</h1>
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6">
+        <div className="mb-6">
+          <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">
+            <PencilIcon size={18} />
+            <span className="font-display text-xs">{t('session.freeWriting')}</span>
+          </div>
         </div>
 
-        <div className="bg-gold/10 rounded-2xl p-4 border border-gold/20 mb-6">
-          <p className="text-xs text-gold font-ui uppercase tracking-wide mb-1">{t('fw.theme')}</p>
-          <p className="font-serif text-lg text-fg">{tema}</p>
+        <div className="pop tilt-r rounded-2xl bg-gold p-4 mb-6">
+          <p className="font-display text-[11px] text-ink mb-1">{t('fw.theme')}</p>
+          <p className="font-kr text-lg text-ink">{tema}</p>
         </div>
 
         {!result ? (
@@ -56,14 +60,14 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
               onChange={e => setTexto(e.target.value)}
               rows={8}
               placeholder="한국어로 자유롭게 쓰세요…"
-              className="w-full rounded-xl border border-line bg-surface p-4 font-serif text-lg text-fg focus:outline-none focus:border-gold resize-none mb-4"
+              className="pop w-full rounded-xl bg-surface p-4 font-serif text-lg text-fg focus:outline-none resize-none mb-4"
               lang="ko"
             />
-            {error && <p className="text-vermillion text-sm font-ui mb-3">{error}</p>}
+            {error && <p className="text-vermillion text-sm font-ui font-bold mb-3">{error}</p>}
             <button
               onClick={submit}
               disabled={loading || !texto.trim()}
-              className="w-full py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold disabled:opacity-40"
+              className="pop pop-shadow-jade tilt-r w-full py-4 rounded-2xl bg-vermillion text-white font-display text-sm disabled:opacity-40 active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               {loading ? t('session.correcting') : t('fw.submit')}
             </button>
@@ -71,24 +75,24 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
         ) : (
           <div className="space-y-4">
             {/* Nota geral */}
-            <div className="bg-jade/10 rounded-2xl p-4 border border-jade/20">
-              <CheckIcon size={16} />
-              <p className="font-ui text-sm text-jade mt-1">{result.nota_geral}</p>
+            <div className="pop rounded-2xl bg-jade p-4 text-ink">
+              <CheckIcon size={18} />
+              <p className="font-ui text-sm font-medium mt-1">{result.nota_geral}</p>
             </div>
 
             {/* Corrected text */}
-            <div className="bg-surface rounded-2xl p-4 border border-line">
-              <p className="text-xs text-fg/40 font-ui mb-2">{t('fw.correctedText')}</p>
+            <div className="pop rounded-2xl bg-surface p-4">
+              <p className="font-display text-[11px] text-fg/60 mb-2">{t('fw.correctedText')}</p>
               <p className="font-serif text-base text-fg">{result.correcao}</p>
             </div>
 
             {/* Structures used spontaneously */}
             {result.estruturas_espontaneas.length > 0 && (
-              <div className="bg-surface rounded-2xl p-4 border border-jade/30">
-                <p className="text-xs text-jade font-ui uppercase tracking-wide mb-2">{t('fw.spontaneous')}</p>
+              <div className="pop rounded-2xl bg-surface p-4">
+                <p className="font-display text-[11px] text-jade mb-2">{t('fw.spontaneous')}</p>
                 <div className="flex flex-wrap gap-2">
                   {result.estruturas_espontaneas.map(e => (
-                    <span key={e} className="font-serif text-sm px-2 py-1 bg-jade/10 text-jade rounded-lg">{e}</span>
+                    <span key={e} className="pop-sm font-serif text-sm px-2 py-1 bg-jade text-ink rounded-lg">{e}</span>
                   ))}
                 </div>
               </div>
@@ -96,8 +100,8 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
 
             {/* Errors */}
             {result.erros.length > 0 && (
-              <div className="bg-surface rounded-2xl p-4 border border-line">
-                <p className="text-xs text-fg/40 font-ui mb-3">{t('fw.corrections')}</p>
+              <div className="pop rounded-2xl bg-surface p-4">
+                <p className="font-display text-[11px] text-fg/60 mb-3">{t('fw.corrections')}</p>
                 <div className="space-y-2">
                   {result.erros.map((e, i) => (
                     <div key={i} className="text-sm">
@@ -113,7 +117,7 @@ export function FreeWriting({ nivel, tema, onDone }: Props) {
 
             <button
               onClick={() => onDone(texto, result.correcao, result.estruturas_usadas, result.estruturas_espontaneas)}
-              className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold"
+              className="pop w-full py-4 rounded-2xl bg-ink text-white font-display text-sm active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               {t('corr.finish')}
             </button>

@@ -8,6 +8,7 @@ import { exportAllData, importAllData, getSessoes } from '../db'
 import { SettingsIcon, DriveIcon, DownloadIcon, UploadIcon } from './Icons'
 import { useSettings, setSetting, MODEL_PRESETS } from '../lib/settings'
 import type { Theme, Language, ClaudeModel } from '../lib/settings'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 const LEVELS = ['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B']
@@ -130,27 +131,32 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
     }
   }
 
-  const card = 'bg-surface rounded-2xl p-4 border border-line'
-  const label = 'font-ui text-sm font-semibold text-fg block mb-2'
+  const card = 'pop rounded-2xl bg-surface p-4'
+  const label = 'font-display text-[11px] text-fg block mb-2'
+  const optBtn = (active: boolean, extra = 'bg-ink text-white') =>
+    `pop-sm py-2 rounded-xl font-ui text-sm font-semibold transition-transform active:translate-x-[1px] active:translate-y-[1px] ${active ? extra : 'bg-surface text-fg/70'}`
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6">
-          <SettingsIcon size={20} />
-          <h1 className="font-ui font-semibold text-fg">{t('settings.title')}</h1>
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-lg mx-auto px-4 py-6">
+        <div className="mb-6">
+          <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">
+            <SettingsIcon size={18} />
+            <span className="font-display text-xs">{t('settings.title')}</span>
+          </div>
         </div>
 
         <div className="space-y-4">
           {/* Conflito de backup */}
           {conflict && (
-            <div className="bg-gold/10 border border-gold/30 rounded-2xl p-4">
-              <p className="font-ui text-sm text-fg mb-2">
-                ⚠️ Há progresso mais recente no Drive (outro dispositivo), de {new Date(conflict).toLocaleString()}.
+            <div className="pop rounded-2xl bg-gold p-4">
+              <p className="font-ui text-sm font-medium text-ink mb-2">
+                Há progresso mais recente no Drive (outro dispositivo), de {new Date(conflict).toLocaleString()}.
               </p>
               <div className="flex gap-2">
-                <button onClick={handleRestore} className="px-3 py-2 rounded-xl bg-jade text-white font-ui text-xs">Trazer do Drive</button>
-                <button onClick={forcePush} className="px-3 py-2 rounded-xl border border-line text-fg font-ui text-xs">Manter este dispositivo</button>
+                <button onClick={handleRestore} className="pop-sm px-3 py-2 rounded-xl bg-jade text-ink font-display text-[11px]">Trazer do Drive</button>
+                <button onClick={forcePush} className="pop-sm px-3 py-2 rounded-xl bg-surface text-fg font-display text-[11px]">Manter este</button>
               </div>
             </div>
           )}
@@ -163,7 +169,7 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
                 <button
                   key={opt}
                   onClick={() => setSetting('theme', opt)}
-                  className={`py-2 rounded-xl font-ui text-sm border ${settings.theme === opt ? 'bg-ink text-white border-ink' : 'border-line text-fg/60'}`}
+                  className={optBtn(settings.theme === opt)}
                 >
                   {opt === 'system' ? t('settings.themeSystem') : opt === 'light' ? t('settings.themeLight') : t('settings.themeDark')}
                 </button>
@@ -179,7 +185,7 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
                 <button
                   key={opt}
                   onClick={() => setSetting('language', opt)}
-                  className={`py-2 rounded-xl font-ui text-sm border ${settings.language === opt ? 'bg-ink text-white border-ink' : 'border-line text-fg/60'}`}
+                  className={optBtn(settings.language === opt)}
                 >
                   {opt === 'pt' ? 'Português' : 'English'}
                 </button>
@@ -196,7 +202,7 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
                 <button
                   key={lv}
                   onClick={() => setLevel(lv)}
-                  className={`py-2 rounded-xl font-serif text-sm border ${perfil.nivel_atual === lv ? 'bg-vermillion text-white border-vermillion' : 'border-line text-fg/60'}`}
+                  className={optBtn(perfil.nivel_atual === lv, 'bg-vermillion text-white')}
                 >
                   {lv}
                 </button>
@@ -265,12 +271,12 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
               className="w-full rounded-xl border border-line bg-surface px-3 py-2 font-ui text-sm text-fg focus:outline-none focus:border-gold mb-3"
             />
             <div className="flex gap-2 flex-wrap">
-              <button onClick={() => initiateGoogleAuth()} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-jade text-white font-ui text-sm">
+              <button onClick={() => initiateGoogleAuth()} className="pop-sm flex items-center gap-2 px-4 py-2 rounded-xl bg-jade text-ink font-ui text-sm font-semibold">
                 <DriveIcon size={16} />
-                {isGoogleConnected() ? 'Drive ligado ✓' : 'Ligar Google Drive'}
+                {isGoogleConnected() ? 'Drive ligado' : 'Ligar Google Drive'}
               </button>
               {isGoogleConnected() && (
-                <button onClick={handleRestore} disabled={restoring} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg">
+                <button onClick={handleRestore} disabled={restoring} className="pop-sm flex items-center gap-2 px-4 py-2 rounded-xl bg-surface font-ui text-sm font-semibold text-fg">
                   <DownloadIcon size={16} />
                   {restoring ? 'A restaurar…' : 'Restaurar backup'}
                 </button>
@@ -300,14 +306,14 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
           <div className={card}>
             <p className="font-ui text-sm font-semibold text-fg mb-3">{t('settings.localData')}</p>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg">
+              <button onClick={handleExport} className="pop-sm flex items-center gap-2 px-4 py-2 rounded-xl bg-surface font-ui text-sm font-semibold text-fg">
                 <UploadIcon size={16} /> {t('settings.exportJson')}
               </button>
-              <label className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg cursor-pointer">
+              <label className="pop-sm flex items-center gap-2 px-4 py-2 rounded-xl bg-surface font-ui text-sm font-semibold text-fg cursor-pointer">
                 <DownloadIcon size={16} /> {t('settings.importJson')}
                 <input type="file" accept=".json" className="hidden" onChange={handleImport} />
               </label>
-              <button onClick={handleExportAnki} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-line font-ui text-sm text-fg">
+              <button onClick={handleExportAnki} className="pop-sm flex items-center gap-2 px-4 py-2 rounded-xl bg-surface font-ui text-sm font-semibold text-fg">
                 <UploadIcon size={16} /> {t('settings.exportAnki')}
               </button>
             </div>
@@ -319,7 +325,7 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
             </div>
           )}
 
-          <button onClick={save} className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold">
+          <button onClick={save} className="pop pop-shadow-jade w-full py-4 rounded-2xl bg-vermillion text-white font-display text-sm active:translate-x-[2px] active:translate-y-[2px] transition-transform">
             {saved ? t('common.saved') : t('common.save')}
           </button>
         </div>

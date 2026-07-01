@@ -29,6 +29,7 @@ import { hasInProgress } from './lib/sessionStore'
 import {
   HomeIcon, LayersIcon, BarChartIcon, SettingsIcon, SpeakerIcon
 } from './components/Icons'
+import { Splat } from './components/Splat'
 
 export default function App() {
   const [view, setView] = useState<AppView>('dashboard')
@@ -267,12 +268,17 @@ export default function App() {
             <button
               key={id}
               onClick={() => setView(id as AppView)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-ui text-sm transition-all ${
-                view === id ? 'bg-surface/10 text-white' : 'text-white/50 hover:text-white/80 hover:bg-surface/5'
+              className={`relative overflow-hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-ui text-sm transition-all ${
+                view === id ? 'text-white font-semibold' : 'text-white/50 hover:text-white/80 hover:bg-surface/5'
               }`}
             >
-              <Icon size={18} />
-              {label}
+              {view === id && (
+                <Splat size={80} className="pointer-events-none absolute -left-4 top-1/2 -translate-y-1/2 text-vermillion/30" />
+              )}
+              <span className="relative z-10 flex items-center gap-3">
+                <Icon size={18} />
+                {label}
+              </span>
             </button>
           ))}
         </nav>
@@ -305,12 +311,15 @@ export default function App() {
             <button
               key={id}
               onClick={() => setView(id as AppView)}
-              className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-all ${
+              className={`relative flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-all ${
                 view === id ? 'text-vermillion' : 'text-white/45'
               }`}
             >
-              <Icon size={22} />
-              <span className="text-[9px] font-display">{label}</span>
+              {view === id && (
+                <Splat size={48} className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 text-vermillion/30" />
+              )}
+              <span className="relative z-10"><Icon size={22} /></span>
+              <span className="relative z-10 text-[9px] font-display">{label}</span>
             </button>
           ))}
         </nav>

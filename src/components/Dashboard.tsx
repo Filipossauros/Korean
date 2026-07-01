@@ -1,6 +1,7 @@
 import type { Perfil, Sessao } from '../types'
 import { getSRSDueCount } from '../hooks/useProfile'
 import { FireIcon, LayersIcon, BookIcon, SpeakerIcon } from './Icons'
+import { PageSplats } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -27,8 +28,9 @@ export function Dashboard({ perfil, sessoes, resumable, onStart, onContinue, onN
   const recentSessoes = sessoes.slice(0, 5)
 
   return (
-    <div className="min-h-screen bg-paper pb-24 md:pb-0">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
+      <PageSplats />
+      <div className="relative z-10 max-w-2xl mx-auto px-4 py-6">
         {/* Header banner */}
         <div className="pop pop-shadow-coral tilt-l inline-block rounded-2xl bg-ink px-5 py-3 mb-3">
           <h1 className="font-kr text-3xl text-jade leading-none">한글 일기</h1>

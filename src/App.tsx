@@ -18,7 +18,6 @@ import { SessionCorrection } from './components/SessionCorrection'
 import { FreeWriting } from './components/FreeWriting'
 import { Vocabulary } from './components/Vocabulary'
 import { Progress } from './components/Progress'
-import { FreeChat } from './components/FreeChat'
 import { Settings } from './components/Settings'
 import { Welcome } from './components/Welcome'
 import { LoadingOverlay } from './components/LoadingOverlay'
@@ -28,7 +27,7 @@ import { useT } from './lib/i18n'
 import { useSettings } from './lib/settings'
 import { hasInProgress } from './lib/sessionStore'
 import {
-  HomeIcon, LayersIcon, BarChartIcon, MessageIcon, SettingsIcon, SpeakerIcon
+  HomeIcon, LayersIcon, BarChartIcon, SettingsIcon, SpeakerIcon
 } from './components/Icons'
 
 export default function App() {
@@ -225,8 +224,6 @@ export default function App() {
         return <Vocabulary perfil={perfil} onUpdate={setPerfil} />
       case 'progress':
         return <Progress sessoes={sessoes} perfil={perfil} />
-      case 'free-chat':
-        return <FreeChat nivel={perfil.nivel_atual} />
       case 'settings':
         return <Settings perfil={perfil} onUpdatePerfil={setPerfil} onRestore={() => { reload(); refreshSessoes() }} />
       case 'session-detail':
@@ -242,7 +239,6 @@ export default function App() {
     { id: 'dashboard', label: t('nav.home'), Icon: HomeIcon },
     { id: 'vocabulary', label: t('nav.vocabShort'), Icon: LayersIcon },
     { id: 'progress', label: t('nav.progress'), Icon: BarChartIcon },
-    { id: 'free-chat', label: t('nav.chatShort'), Icon: MessageIcon },
     { id: 'settings', label: t('nav.settings'), Icon: SettingsIcon },
   ] as const
 
@@ -266,7 +262,6 @@ export default function App() {
             { id: 'vocabulary', label: t('nav.vocab'), Icon: LayersIcon },
             { id: 'progress', label: t('nav.progress'), Icon: BarChartIcon },
             { id: 'dialogue', label: t('nav.dialogue'), Icon: SpeakerIcon },
-            { id: 'free-chat', label: t('nav.chat'), Icon: MessageIcon },
             { id: 'settings', label: t('nav.settings'), Icon: SettingsIcon },
           ].map(({ id, label, Icon }) => (
             <button

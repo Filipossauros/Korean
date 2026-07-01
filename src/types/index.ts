@@ -120,6 +120,5 @@ export type AppView =
   | 'free-writing'
   | 'vocabulary'
   | 'progress'
-  | 'free-chat'
   | 'dialogue'
   | 'settings'

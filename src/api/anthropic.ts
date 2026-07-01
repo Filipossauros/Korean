@@ -135,55 +135,6 @@ export async function correctFreeWriting(tema: string, texto: string, nivel: str
   }>(text)
 }
 
-export async function sendFreeChat(messages: { role: 'user' | 'assistant'; content: string }[], nivel: string): Promise<string> {
-  const systemPrompt = `És um professor de coreano paciente e encorajador. O utilizador está no nível ${nivel} do King Sejong Institute. Responde em ${langName()}, mas inclui exemplos em coreano (hangul) com romanização e tradução quando relevante. Mantém as respostas concisas e pedagógicas.`
-  return request({ model: model(), max_tokens: 1024, system: systemPrompt, messages })
-}
-
-// Streaming chat para velocidade percebida.
-export async function streamFreeChat(
-  messages: { role: 'user' | 'assistant'; content: string }[],
-  nivel: string,
-  onDelta: (chunk: string) => void
-): Promise<void> {
-  const key = getApiKey()
-  const systemPrompt = `És um professor de coreano paciente e encorajador. O utilizador está no nível ${nivel} do King Sejong Institute. Responde em ${langName()}, mas inclui exemplos em coreano (hangul) com romanização e tradução quando relevante. Mantém as respostas concisas e pedagógicas.`
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({ model: model(), max_tokens: 1024, system: systemPrompt, messages, stream: true }),
-  })
-  if (!res.ok || !res.body) {
-    const t = await res.text().catch(() => '')
-    throw new ApiError(`Erro da API (${res.status}): ${t.slice(0, 200)}`, res.status)
-  }
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (!trimmed.startsWith('data:')) continue
-      const payload = trimmed.slice(5).trim()
-      if (payload === '[DONE]') continue
-      try {
-        const evt = JSON.parse(payload)
-        if (evt.type === 'content_block_delta' && evt.delta?.text) onDelta(evt.delta.text)
-      } catch { /* ignora linhas parciais */ }
-    }
-  }
-}
-
 // OCR de manuscrito Hangul via Claude Vision (mais preciso que Tesseract).
 export async function recognizeHangulWithClaude(imageFile: File): Promise<string> {
   const base64 = await fileToBase64(imageFile)

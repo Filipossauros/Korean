@@ -6,7 +6,7 @@ type Dict = Record<string, string>
 const pt: Dict = {
   // nav
   'nav.home': 'Início', 'nav.vocab': 'Vocabulário', 'nav.vocabShort': 'Vocab',
-  'nav.progress': 'Progresso', 'nav.chat': 'Conversa', 'nav.chatShort': 'Chat',
+  'nav.progress': 'Progresso',
   'nav.settings': 'Definições', 'nav.todaySession': 'Sessão de hoje',
   // common
   'common.loading': 'A carregar…', 'common.back': '← Sair', 'common.retry': 'Tentar de novo',
@@ -68,9 +68,6 @@ const pt: Dict = {
   'vocab.none': 'Nenhum vocabulário ainda', 'vocab.doSession': 'Faz uma sessão para começar a aprender palavras',
   'vocab.wrong': 'Errei', 'vocab.right': 'Acertei', 'vocab.seen': 'visto',
   'vocab.reviewed': 'Revisaste {n} cartões.',
-  // chat
-  'chat.title': 'Conversa livre', 'chat.placeholder': 'Escreve aqui…',
-  'chat.intro': '안녕하세요! 저는 한국어 선생님이에요. Estou aqui para ajudar com o teu coreano (nível {nivel}). Podes perguntar sobre gramática, vocabulário, ou praticar conversação. Como posso ajudar?',
   // nav + sessão + dashboard + diálogo
   'nav.dialogue': 'Diálogos',
   'session.terminate': 'Terminar',
@@ -86,7 +83,7 @@ const pt: Dict = {
 
 const en: Dict = {
   'nav.home': 'Home', 'nav.vocab': 'Vocabulary', 'nav.vocabShort': 'Vocab',
-  'nav.progress': 'Progress', 'nav.chat': 'Chat', 'nav.chatShort': 'Chat',
+  'nav.progress': 'Progress',
   'nav.settings': 'Settings', 'nav.todaySession': "Today's session",
   'common.loading': 'Loading…', 'common.back': '← Exit', 'common.retry': 'Try again',
   'common.save': 'Save settings', 'common.saved': 'Saved ✓', 'common.cancel': 'Cancel',
@@ -138,8 +135,6 @@ const en: Dict = {
   'vocab.none': 'No vocabulary yet', 'vocab.doSession': 'Do a session to start learning words',
   'vocab.wrong': 'Got it wrong', 'vocab.right': 'Got it right', 'vocab.seen': 'seen',
   'vocab.reviewed': 'You reviewed {n} cards.',
-  'chat.title': 'Free chat', 'chat.placeholder': 'Type here…',
-  'chat.intro': "안녕하세요! 저는 한국어 선생님이에요. I'm here to help with your Korean (level {nivel}). You can ask about grammar, vocabulary, or practice conversation. How can I help?",
   'nav.dialogue': 'Dialogues',
   'session.terminate': 'Finish',
   'dash.continueSession': 'Continue session',

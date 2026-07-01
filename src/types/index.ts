@@ -87,9 +87,17 @@ export interface DialogoLinha {
   romanizacao?: string
 }
 
+export interface DialogoPergunta {
+  pergunta: string
+  opcoes: string[]
+  correta: number        // índice da opção correcta em `opcoes`
+  explicacao: string     // sempre na língua de apoio
+}
+
 export interface Dialogo {
   tema: string
   linhas: DialogoLinha[]
+  perguntas?: DialogoPergunta[]
 }
 
 export interface UnidadeKSI {

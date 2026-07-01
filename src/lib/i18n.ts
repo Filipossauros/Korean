@@ -78,7 +78,15 @@ const pt: Dict = {
   'dialogue.generating': 'A gerar diálogo…', 'dialogue.playAll': '▶ Ouvir tudo',
   'dialogue.stop': '■ Parar', 'dialogue.newOne': 'Novo diálogo',
   'dialogue.noVoice': 'Este dispositivo não tem voz coreana instalada — o texto fica disponível na mesma.',
-  'dialogue.intro': 'Gera um diálogo curto no teu nível e ouve-o.',
+  'dialogue.intro': 'Gera um diálogo curto no teu nível, lê-o (com áudio de apoio) e testa a tua compreensão.',
+  'dialogue.comprehension': 'Compreensão',
+  'dialogue.check': 'Avaliar compreensão',
+  'dialogue.answerAll': 'Responde a todas as perguntas primeiro.',
+  'dialogue.showTranslation': 'Mostrar tradução',
+  'dialogue.hideTranslation': 'Esconder tradução',
+  'dialogue.locked': 'Responde às perguntas para desbloquear a tradução.',
+  'dialogue.score': 'Acertaste',
+  'dialogue.tryAgain': 'Repetir perguntas',
 }
 
 const en: Dict = {
@@ -144,7 +152,15 @@ const en: Dict = {
   'dialogue.generating': 'Generating dialogue…', 'dialogue.playAll': '▶ Play all',
   'dialogue.stop': '■ Stop', 'dialogue.newOne': 'New dialogue',
   'dialogue.noVoice': "This device has no Korean voice installed — the text is still available.",
-  'dialogue.intro': 'Generate a short dialogue at your level and listen to it.',
+  'dialogue.intro': 'Generate a short dialogue at your level, read it (with audio support) and test your comprehension.',
+  'dialogue.comprehension': 'Comprehension',
+  'dialogue.check': 'Check comprehension',
+  'dialogue.answerAll': 'Answer every question first.',
+  'dialogue.showTranslation': 'Show translation',
+  'dialogue.hideTranslation': 'Hide translation',
+  'dialogue.locked': 'Answer the questions to unlock the translation.',
+  'dialogue.score': 'You got',
+  'dialogue.tryAgain': 'Retry questions',
 }
 
 const dicts: Record<Language, Dict> = { pt, en }

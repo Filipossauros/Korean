@@ -119,7 +119,7 @@ export async function correctProduction(sessao: Sessao) {
 
 export async function generateDialogue(nivel: string, unidade: UnidadeKSI, turns?: string): Promise<Dialogo> {
   const prompt = generateDialoguePrompt(nivel, unidade, langName(), turns)
-  const text = await request({ model: model(), max_tokens: 4096, messages: [{ role: 'user', content: prompt }] })
+  const text = await request({ model: model(), max_tokens: 6144, messages: [{ role: 'user', content: prompt }] })
   return parseJSON<Dialogo>(text)
 }
 

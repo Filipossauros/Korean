@@ -13,8 +13,8 @@ export default defineConfig({
         name: '한글 일기',
         short_name: '한글일기',
         description: 'PWA de aprendizagem de coreano com sessões diárias estruturadas',
-        theme_color: '#1A1A2E',
-        background_color: '#F7F6F2',
+        theme_color: '#17282B',
+        background_color: '#FBF5EA',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Perfil, Sessao } from '../types'
 import {
   initiateGoogleAuth, isGoogleConnected, saveConfigToDrive,
@@ -8,8 +8,28 @@ import { exportAllData, importAllData, getSessoes } from '../db'
 import { SettingsIcon, DriveIcon, DownloadIcon, UploadIcon } from './Icons'
 import { useSettings, setSetting, MODEL_PRESETS } from '../lib/settings'
 import type { Theme, Language, ClaudeModel } from '../lib/settings'
-import { PageSplats } from './Splat'
+import { PageSplats, Splat } from './Splat'
 import { useT } from '../lib/i18n'
+
+// Botão de opção: quando selecionado ganha um splat de tinta por trás.
+function OptButton({ active, onClick, activeClass = 'bg-ink text-white', children }: {
+  active: boolean
+  onClick: () => void
+  activeClass?: string
+  children: ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative overflow-hidden pop-sm w-full py-2 rounded-xl font-ui text-sm font-semibold transition-transform active:translate-x-[1px] active:translate-y-[1px] ${
+        active ? activeClass : 'bg-surface text-fg/70'
+      }`}
+    >
+      {active && <Splat size={70} className="pointer-events-none absolute -right-3 -top-4 text-white/20" />}
+      <span className="relative z-10">{children}</span>
+    </button>
+  )
+}
 
 const LEVELS = ['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B']
 
@@ -133,8 +153,6 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
 
   const card = 'pop rounded-2xl bg-surface p-4'
   const label = 'font-display text-[11px] text-fg block mb-2'
-  const optBtn = (active: boolean, extra = 'bg-ink text-white') =>
-    `pop-sm py-2 rounded-xl font-ui text-sm font-semibold transition-transform active:translate-x-[1px] active:translate-y-[1px] ${active ? extra : 'bg-surface text-fg/70'}`
 
   return (
     <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
@@ -166,13 +184,9 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
             <span className={label}>{t('settings.theme')}</span>
             <div className="grid grid-cols-3 gap-2">
               {(['system', 'light', 'dark'] as Theme[]).map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setSetting('theme', opt)}
-                  className={optBtn(settings.theme === opt)}
-                >
+                <OptButton key={opt} active={settings.theme === opt} onClick={() => setSetting('theme', opt)}>
                   {opt === 'system' ? t('settings.themeSystem') : opt === 'light' ? t('settings.themeLight') : t('settings.themeDark')}
-                </button>
+                </OptButton>
               ))}
             </div>
           </div>
@@ -182,13 +196,9 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
             <span className={label}>{t('settings.language')}</span>
             <div className="grid grid-cols-2 gap-2">
               {(['pt', 'en'] as Language[]).map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setSetting('language', opt)}
-                  className={optBtn(settings.language === opt)}
-                >
+                <OptButton key={opt} active={settings.language === opt} onClick={() => setSetting('language', opt)}>
                   {opt === 'pt' ? 'Português' : 'English'}
-                </button>
+                </OptButton>
               ))}
             </div>
             <p className="text-xs text-fg/40 font-ui mt-2">As sessões e correções passam a usar este idioma.</p>
@@ -199,13 +209,9 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
             <span className={label}>{t('settings.currentLevel')}</span>
             <div className="grid grid-cols-4 gap-2">
               {LEVELS.map(lv => (
-                <button
-                  key={lv}
-                  onClick={() => setLevel(lv)}
-                  className={optBtn(perfil.nivel_atual === lv, 'bg-vermillion text-white')}
-                >
+                <OptButton key={lv} active={perfil.nivel_atual === lv} onClick={() => setLevel(lv)} activeClass="bg-vermillion text-white">
                   {lv}
-                </button>
+                </OptButton>
               ))}
             </div>
             <p className="text-xs text-fg/40 font-ui mt-2">Muda de onde saem as sessões. O progresso é mantido.</p>

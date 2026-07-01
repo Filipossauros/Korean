@@ -7,24 +7,34 @@ import { speakKorean, stopSpeaking, canSpeak, hasKoreanVoice } from '../lib/tts'
 import { useT } from '../lib/i18n'
 import { useSettings } from '../lib/settings'
 import { romanize } from '../lib/romanize'
+import { loadDialogue, saveDialogue } from '../lib/dialogueStore'
 import { SpeakerIcon, MessageIcon, CheckIcon, XIcon } from './Icons'
 import { PageSplats } from './Splat'
 
 export function Dialogue({ nivel, perfil }: { nivel: string; perfil: Perfil }) {
   const t = useT()
   const { romanization } = useSettings()
-  const [dialogo, setDialogo] = useState<Dialogo | null>(null)
+  // Retoma o diálogo em curso (guardado ao navegar para fora / fechar a app).
+  const restored = useRef<ReturnType<typeof loadDialogue> | undefined>(undefined)
+  if (restored.current === undefined) restored.current = loadDialogue()
+  const saved = restored.current
+  const [dialogo, setDialogo] = useState<Dialogo | null>(saved?.dialogo ?? null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [playing, setPlaying] = useState(false)
   const [activeLine, setActiveLine] = useState(-1)
   // Compreensão: respostas escolhidas, se já foi avaliado, e se a tradução está desbloqueada.
-  const [answers, setAnswers] = useState<Record<number, number>>({})
-  const [graded, setGraded] = useState(false)
-  const [unlocked, setUnlocked] = useState(false)
+  const [answers, setAnswers] = useState<Record<number, number>>(saved?.answers ?? {})
+  const [graded, setGraded] = useState(saved?.graded ?? false)
+  const [unlocked, setUnlocked] = useState(saved?.unlocked ?? false)
   const cancelRef = useRef(false)
 
   useEffect(() => () => stopSpeaking(), [])
+
+  // Persiste o diálogo atual + estado do quiz sempre que muda.
+  useEffect(() => {
+    if (dialogo) saveDialogue({ dialogo, answers, graded, unlocked })
+  }, [dialogo, answers, graded, unlocked])
 
   const resetInteraction = () => { setAnswers({}); setGraded(false); setUnlocked(false) }
 

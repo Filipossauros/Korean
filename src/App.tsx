@@ -240,6 +240,7 @@ export default function App() {
     { id: 'dashboard', label: t('nav.home'), Icon: HomeIcon },
     { id: 'vocabulary', label: t('nav.vocabShort'), Icon: LayersIcon },
     { id: 'progress', label: t('nav.progress'), Icon: BarChartIcon },
+    { id: 'dialogue', label: t('nav.dialogue'), Icon: SpeakerIcon },
     { id: 'settings', label: t('nav.settings'), Icon: SettingsIcon },
   ] as const
 

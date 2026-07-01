@@ -67,30 +67,30 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <PencilIcon size={20} />
-            <h1 className="font-ui font-semibold text-fg">{t('session.production')}</h1>
+          <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">
+            <PencilIcon size={18} />
+            <span className="font-display text-xs">{t('session.production')}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-ui text-sm text-fg/40">{current + 1}/{frases.length}</span>
-            {showTimer && <span className="font-ui text-sm text-fg/40 tabular-nums">{fmt(elapsed)}</span>}
+            <span className="font-display text-sm text-fg/60">{current + 1}/{frases.length}</span>
+            {showTimer && <span className="font-display text-sm text-fg/50 tabular-nums">{fmt(elapsed)}</span>}
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full h-1 bg-line rounded-full mb-6">
+        <div className="w-full h-2.5 bg-surface rounded-full mb-6 border-2 border-ink overflow-hidden">
           <div
-            className="h-1 bg-vermillion rounded-full transition-all"
+            className="h-full bg-vermillion transition-all"
             style={{ width: `${((current + 1) / frases.length) * 100}%` }}
           />
         </div>
 
         {/* Current sentence */}
-        <div className="bg-surface rounded-2xl p-5 mb-4 border border-line">
-          <p className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-2">{t('session.translateToKorean')}</p>
-          <p className="font-ui text-xl font-medium text-fg">{frase.pt_original}</p>
+        <div className="pop tilt-r rounded-2xl bg-surface p-5 mb-4">
+          <p className="font-display text-[11px] text-fg/60 mb-2">{t('session.translateToKorean')}</p>
+          <p className="font-ui text-xl font-semibold text-fg">{frase.pt_original}</p>
           {frase.estrutura_foco && (
-            <p className="text-xs text-gold font-ui mt-2">{t('session.focus')}: {frase.estrutura_foco}</p>
+            <p className="text-xs text-ink font-ui font-bold mt-2 inline-block pop-sm bg-gold rounded-lg px-2 py-0.5">{t('session.focus')}: {frase.estrutura_foco}</p>
           )}
         </div>
 
@@ -99,14 +99,14 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
           <div className="mb-4">
             <button
               onClick={() => setShowDicas(d => !d)}
-              className="text-xs text-fg/40 font-ui underline"
+              className="text-xs text-fg/60 font-ui font-semibold underline"
             >
               {showDicas ? t('session.hideHints') : t('session.showHints')}
             </button>
             {showDicas && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {frase.dicas.map((d, i) => (
-                  <span key={i} className="text-xs font-serif px-2 py-1 bg-gold/10 text-gold rounded-lg">{d}</span>
+                  <span key={i} className="pop-sm text-xs font-serif px-2 py-1 bg-gold text-ink rounded-lg">{d}</span>
                 ))}
               </div>
             )}
@@ -124,7 +124,7 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
             }}
             rows={3}
             placeholder="한국어로 쓰세요…"
-            className="w-full rounded-xl border border-line bg-surface p-3 pr-12 font-serif text-lg text-fg focus:outline-none focus:border-gold resize-none"
+            className="pop w-full rounded-xl bg-surface p-3 pr-12 font-serif text-lg text-fg focus:outline-none resize-none"
             lang="ko"
           />
           <div className="absolute right-3 bottom-3 flex items-center gap-2">
@@ -166,7 +166,7 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
           {current < frases.length - 1 ? (
             <button
               onClick={next}
-              className="flex-1 py-4 rounded-2xl bg-ink text-white font-ui font-semibold active:scale-95 transition-all"
+              className="pop flex-1 py-4 rounded-2xl bg-ink text-white font-display text-sm active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               {t('session.nextSentence')}
             </button>
@@ -174,7 +174,7 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
             <button
               onClick={() => onSubmit(respostas)}
               disabled={!allAnswered}
-              className="flex-1 py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold disabled:opacity-40 active:scale-95 transition-all"
+              className="pop pop-shadow-jade flex-1 py-4 rounded-2xl bg-vermillion text-white font-display text-sm disabled:opacity-40 active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               {t('session.submitAll')}
             </button>
@@ -182,20 +182,20 @@ export function SessionWriting({ frases, showTimer, onSubmit }: Props) {
         </div>
 
         {/* Mini list of all answers */}
-        <div className="mt-6 space-y-2">
+        <div className="mt-6 space-y-2.5">
           {frases.map((f, i) => (
             <div
               key={i}
               onClick={() => setCurrent(i)}
-              className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                i === current ? 'border-gold bg-gold/5' : 'border-line bg-surface'
+              className={`pop-sm p-3 rounded-xl cursor-pointer transition-transform active:translate-x-[1px] active:translate-y-[1px] ${
+                i === current ? 'bg-gold' : 'bg-surface'
               }`}
             >
-              <p className="text-xs text-fg/50 font-ui">{f.pt_original}</p>
+              <p className={`text-xs font-ui ${i === current ? 'text-ink/70 font-semibold' : 'text-fg/50'}`}>{f.pt_original}</p>
               {respostas[i] ? (
-                <p className="text-sm font-serif text-fg mt-1">{respostas[i]}</p>
+                <p className={`text-sm font-serif mt-1 ${i === current ? 'text-ink' : 'text-fg'}`}>{respostas[i]}</p>
               ) : (
-                <p className="text-xs text-fg/20 font-ui mt-1">—</p>
+                <p className={`text-xs font-ui mt-1 ${i === current ? 'text-ink/40' : 'text-fg/20'}`}>—</p>
               )}
             </div>
           ))}

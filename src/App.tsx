@@ -253,8 +253,8 @@ export default function App() {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-56 bg-ink shrink-0 py-6 px-3">
         <div className="px-3 mb-8">
-          <h1 className="font-serif text-white text-xl font-bold">한글 일기</h1>
-          <p className="text-white/40 text-xs font-ui mt-0.5">Nível {perfil.nivel_atual}</p>
+          <h1 className="font-kr text-jade text-2xl leading-none">한글 일기</h1>
+          <p className="text-white/50 text-[10px] font-display mt-1">NÍVEL {perfil.nivel_atual}</p>
         </div>
         <nav className="space-y-1 flex-1">
           {[
@@ -278,7 +278,7 @@ export default function App() {
         </nav>
         <button
           onClick={handleStartSession}
-          className="mx-3 py-3 rounded-xl bg-vermillion text-white font-ui text-sm font-semibold active:scale-95 transition-all"
+          className="pop-sm mx-3 py-3 rounded-xl bg-vermillion text-white font-display text-xs active:translate-x-[2px] active:translate-y-[2px] transition-transform"
         >
           {t('nav.todaySession')}
         </button>
@@ -300,17 +300,17 @@ export default function App() {
 
       {/* Mobile bottom tab bar */}
       {!isSessionActive && (
-        <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-surface border-t border-line flex z-40 pb-safe">
+        <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-ink flex z-40 pb-safe">
           {tabs.map(({ id, label, Icon }) => (
             <button
               key={id}
               onClick={() => setView(id as AppView)}
-              className={`flex-1 flex flex-col items-center py-2 gap-0.5 transition-all ${
-                view === id ? 'text-vermillion' : 'text-fg/30'
+              className={`flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-all ${
+                view === id ? 'text-vermillion' : 'text-white/45'
               }`}
             >
               <Icon size={22} />
-              <span className="text-[10px] font-ui">{label}</span>
+              <span className="text-[9px] font-display">{label}</span>
             </button>
           ))}
         </nav>
@@ -324,13 +324,13 @@ export default function App() {
         >
           <button
             onClick={() => { session.reset(); setView('dashboard') }}
-            className="bg-surface border border-line rounded-xl px-3 py-1.5 text-xs font-ui text-fg/60 shadow-sm"
+            className="pop-sm bg-surface rounded-xl px-3 py-1.5 text-[11px] font-display text-fg"
           >
             {t('common.back')}
           </button>
           <button
             onClick={handleTerminate}
-            className="bg-surface border border-vermillion/30 rounded-xl px-3 py-1.5 text-xs font-ui text-vermillion shadow-sm"
+            className="pop-sm bg-vermillion rounded-xl px-3 py-1.5 text-[11px] font-display text-white"
           >
             {t('session.terminate')}
           </button>

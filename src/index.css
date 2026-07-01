@@ -2,35 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Colors are stored as space-separated RGB channels so Tailwind's
-   alpha utilities (text-fg/60, bg-vermillion/10) keep working. */
+/* ============================================================
+   Paleta "Splatoon Raiders": turquesa + coral + dourado.
+   Cores guardadas como canais RGB para as utilidades de alpha
+   do Tailwind (text-fg/60, bg-vermillion/10) continuarem a funcionar.
+   Os nomes semânticos mantêm-se (vermillion≈coral, jade≈turquesa)
+   para os componentes existentes reaproveitarem a nova paleta.
+   ============================================================ */
 :root {
-  --bg: 247 246 242;        /* paper */
-  --surface: 255 255 255;   /* cards */
-  --surface-2: 239 239 234; /* paper-2 */
-  --fg: 26 26 46;           /* ink text */
-  --border: 221 221 213;    /* line */
-  --vermillion: 192 57 43;
-  --gold: 201 161 46;
-  --jade: 46 125 107;
-  --ink-fixed: 26 26 46;    /* always-dark surfaces (sidebar, welcome) */
+  --bg: 251 245 234;        /* creme */
+  --surface: 255 255 255;   /* cartões de conteúdo */
+  --surface-2: 241 234 219; /* superfície alternativa */
+  --fg: 23 40 43;           /* tinta / texto */
+  --border: 223 216 203;    /* divisórias suaves */
+  --vermillion: 255 106 77; /* coral (ação) */
+  --gold: 245 184 30;       /* dourado */
+  --jade: 22 193 176;       /* turquesa */
+  --ink-fixed: 23 40 43;    /* superfícies sempre escuras (nav) */
+
+  /* contorno + sombra do estilo "autocolante" */
+  --pop-outline: 23 40 43;
+  --pop-shadow: 23 40 43;
 }
 
 .dark {
-  --bg: 18 18 28;
-  --surface: 32 32 48;
-  --surface-2: 38 38 56;
-  --fg: 232 232 240;
-  --border: 48 48 66;
-  --vermillion: 224 95 80;
-  --gold: 217 180 65;
-  --jade: 70 167 144;
-  --ink-fixed: 10 10 18;
+  --bg: 14 23 25;
+  --surface: 23 40 44;
+  --surface-2: 30 53 58;
+  --fg: 232 240 240;
+  --border: 44 67 72;
+  --vermillion: 255 110 82;
+  --gold: 247 192 43;
+  --jade: 24 207 187;
+  --ink-fixed: 8 16 18;
+
+  --pop-outline: 44 67 72;
+  --pop-shadow: 8 16 18;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
@@ -43,10 +53,28 @@ body {
   color: rgb(var(--fg));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  font-family: 'Fredoka', 'Noto Sans KR', sans-serif;
 }
 
 /* Safe area support for iPhone notch */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+@layer components {
+  /* Cartão "autocolante": contorno grosso + sombra dura deslocada */
+  .pop {
+    border: 3px solid rgb(var(--pop-outline));
+    box-shadow: 5px 5px 0 rgb(var(--pop-shadow));
+  }
+  .pop-sm {
+    border: 3px solid rgb(var(--pop-outline));
+    box-shadow: 3px 3px 0 rgb(var(--pop-shadow));
+  }
+  /* Sombra dura numa cor de acento (ex.: pop-shadow-jade) */
+  .pop-shadow-coral { box-shadow: 6px 6px 0 rgb(var(--vermillion)); }
+  .pop-shadow-jade  { box-shadow: 6px 6px 0 rgb(var(--jade)); }
+  .pop-shadow-gold  { box-shadow: 6px 6px 0 rgb(var(--gold)); }
+
+  /* Inclinação subtil estilo autocolante */
+  .tilt-l { transform: rotate(-2deg); }
+  .tilt-r { transform: rotate(1.5deg); }
 }

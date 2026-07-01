@@ -33,73 +33,73 @@ export function SessionReading({ draft, onSubmit, showTimer, initialValue = '' }
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <BookIcon size={20} />
-            <h1 className="font-ui font-semibold text-fg">{t('session.reading')}</h1>
+          <div className="pop-sm tilt-l inline-flex items-center gap-2 rounded-xl bg-ink px-3 py-1.5 text-jade">
+            <BookIcon size={18} />
+            <span className="font-display text-xs">{t('session.reading')}</span>
           </div>
           {showTimer && (
-            <span className="font-ui text-sm text-fg/40 tabular-nums">{fmt(elapsed)}</span>
+            <span className="font-display text-sm text-fg/50 tabular-nums">{fmt(elapsed)}</span>
           )}
         </div>
 
         {/* Vocab + grammar box */}
-        <div className="bg-ink/5 rounded-2xl p-4 mb-6 border border-line">
-          <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-3">{t('session.newVocab')}</h2>
+        <div className="pop tilt-r rounded-2xl bg-gold p-4 mb-6">
+          <h2 className="font-display text-[11px] text-ink mb-3">{t('session.newVocab')}</h2>
           <div className="space-y-3 mb-4">
             {draft.parte1.vocabulario_novo.map(v => (
               <div key={v.kr} className="flex flex-col">
                 <div className="flex gap-2 items-baseline flex-wrap">
-                  <span className="font-serif text-lg text-fg font-semibold">{v.kr}</span>
-                  <span className="text-fg/60 font-ui text-sm">{v.pt}</span>
+                  <span className="font-kr text-lg text-ink">{v.kr}</span>
+                  <span className="text-ink/70 font-ui text-sm font-medium">{v.pt}</span>
                 </div>
                 {v.exemplo && (
-                  <p className="text-fg/40 font-ui text-xs mt-0.5 leading-snug">{v.exemplo}</p>
+                  <p className="text-ink/50 font-ui text-xs mt-0.5 leading-snug">{v.exemplo}</p>
                 )}
               </div>
             ))}
           </div>
-          <div className="border-t border-line pt-3">
-            <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50 mb-2">{t('session.grammarPoint')}</h2>
+          <div className="border-t-2 border-ink/20 pt-3">
+            <h2 className="font-display text-[11px] text-ink mb-2">{t('session.grammarPoint')}</h2>
             <div className="flex gap-2 items-baseline flex-wrap">
-              <span className="font-serif text-base text-gold font-semibold">{draft.parte1.ponto_gramatical.forma}</span>
-              <span className="text-fg/60 font-ui text-sm">— {draft.parte1.ponto_gramatical.significado}</span>
+              <span className="font-kr text-base text-ink">{draft.parte1.ponto_gramatical.forma}</span>
+              <span className="text-ink/70 font-ui text-sm font-medium">— {draft.parte1.ponto_gramatical.significado}</span>
             </div>
             {draft.parte1.ponto_gramatical.exemplo && (
-              <p className="text-xs text-fg/40 font-ui mt-1">{draft.parte1.ponto_gramatical.exemplo}</p>
+              <p className="text-xs text-ink/50 font-ui mt-1">{draft.parte1.ponto_gramatical.exemplo}</p>
             )}
           </div>
         </div>
 
         {/* Reading text */}
-        <div className="bg-surface rounded-2xl p-5 mb-6 border border-line">
+        <div className="pop pop-shadow-jade tilt-l rounded-2xl bg-ink p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-ui text-xs uppercase tracking-wider text-fg/50">{t('session.text')}</h2>
+            <h2 className="font-display text-[11px] text-vermillion">{t('session.text')}</h2>
             {canSpeak() && (
-              <button onClick={() => speakKorean(draft.parte1.texto_kr)} className="text-fg/40 hover:text-jade transition-colors" title="Ouvir">
-                <SpeakerIcon size={18} />
+              <button onClick={() => speakKorean(draft.parte1.texto_kr)} className="text-jade" title="Ouvir">
+                <SpeakerIcon size={20} />
               </button>
             )}
           </div>
-          <p className="font-serif text-xl leading-relaxed text-fg">{draft.parte1.texto_kr}</p>
-          {romanization && <p className="text-sm text-fg/40 italic mt-2">{romanize(draft.parte1.texto_kr)}</p>}
+          <p className="font-serif text-xl leading-relaxed text-white">{draft.parte1.texto_kr}</p>
+          {romanization && <p className="text-sm text-jade italic mt-2">{romanize(draft.parte1.texto_kr)}</p>}
         </div>
 
         {/* Translation input */}
         <div className="mb-6">
-          <label className="font-ui text-sm text-fg/60 mb-2 block">{t('session.yourTranslation')}:</label>
+          <label className="font-ui text-sm font-bold text-fg mb-2 block">{t('session.yourTranslation')}:</label>
           <textarea
             value={traducao}
             onChange={e => setTraducao(e.target.value)}
             rows={4}
             placeholder="Escreve aqui a tua tradução…"
-            className="w-full rounded-xl border border-line bg-surface p-3 font-ui text-sm text-fg focus:outline-none focus:border-gold resize-none"
+            className="pop w-full rounded-xl bg-surface p-3 font-ui text-sm text-fg focus:outline-none resize-none"
           />
         </div>
 
         <button
           onClick={() => onSubmit(traducao)}
           disabled={!traducao.trim()}
-          className="w-full py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold disabled:opacity-40 active:scale-95 transition-all"
+          className="pop pop-shadow-jade tilt-r w-full py-4 rounded-2xl bg-vermillion text-white font-display text-sm disabled:opacity-40 active:translate-x-[2px] active:translate-y-[2px] transition-transform"
         >
           {t('session.submitTranslation')}
         </button>

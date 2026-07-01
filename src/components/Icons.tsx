@@ -1,4 +1,4 @@
-const s = { strokeWidth: 1.6, stroke: 'currentColor', fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+const s = { strokeWidth: 2.2, stroke: 'currentColor', fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
 export function HomeIcon({ size = 24 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" {...s}><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>

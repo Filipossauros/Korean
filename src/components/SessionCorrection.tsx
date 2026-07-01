@@ -33,25 +33,25 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Score summary — escondido enquanto a Parte 1 ainda está a corrigir */}
         {!(isPart1 && loading) && (
-          <div className="bg-surface rounded-2xl p-5 border border-line mb-6 text-center">
-            <p className="text-5xl font-bold font-ui text-fg mb-1">{total}<span className="text-2xl text-fg/30">/{max}</span></p>
-            <div className="w-full h-2 bg-line rounded-full mt-3 mb-2">
+          <div className="pop pop-shadow-jade tilt-r rounded-2xl bg-ink p-5 mb-6 text-center">
+            <p className="text-5xl font-display text-white mb-1">{total}<span className="text-2xl text-white/40">/{max}</span></p>
+            <div className="w-full h-3 bg-black/30 rounded-full mt-3 mb-2 overflow-hidden border-2 border-white/10">
               <div
-                className={`h-2 rounded-full transition-all ${pct >= 70 ? 'bg-jade' : pct >= 40 ? 'bg-gold' : 'bg-vermillion'}`}
+                className={`h-full transition-all ${pct >= 70 ? 'bg-jade' : pct >= 40 ? 'bg-gold' : 'bg-vermillion'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <p className="text-sm text-fg/50 font-ui">{pct}% · {sessao.tema}</p>
+            <p className="text-sm text-white/60 font-display">{pct}% · {sessao.tema}</p>
           </div>
         )}
 
         {/* Part 1 correction */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="font-ui font-semibold text-fg">{t('corr.readingShort')}</h2>
-            <span className="font-ui text-sm font-bold text-fg">{sessao.parte1.pontuacao}/10</span>
+            <h2 className="font-display text-sm text-fg">{t('corr.readingShort')}</h2>
+            <span className="font-display text-sm text-fg">{sessao.parte1.pontuacao}/10</span>
           </div>
-          <div className="bg-surface rounded-2xl p-4 border border-line">
+          <div className="pop rounded-2xl bg-surface p-4">
             <p className="text-xs text-fg/40 font-ui mb-1">{t('corr.yourTranslation')}</p>
             <p className="font-ui text-sm text-fg mb-3">{sessao.parte1.traducao_utilizador || '—'}</p>
             {sessao.parte1.traducao_referencia && (
@@ -84,12 +84,12 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
         {!isPart1 && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="font-ui font-semibold text-fg">{t('corr.productionShort')}</h2>
-            <span className="font-ui text-sm font-bold text-fg">{sessao.parte2.pontuacao}/10</span>
+            <h2 className="font-display text-sm text-fg">{t('corr.productionShort')}</h2>
+            <span className="font-display text-sm text-fg">{sessao.parte2.pontuacao}/10</span>
           </div>
           <div className="space-y-3">
             {sessao.parte2.frases.map((f, i) => (
-              <div key={i} className={`bg-surface rounded-xl p-4 border ${f.correcto ? 'border-jade/30' : 'border-vermillion/30'}`}>
+              <div key={i} className={`pop-sm bg-surface rounded-xl p-4 ${f.correcto ? 'pop-shadow-jade' : 'pop-shadow-coral'}`}>
                 <div className="flex gap-2 items-start">
                   <span className={`mt-0.5 shrink-0 ${f.correcto ? 'text-jade' : 'text-vermillion'}`}>
                     {f.correcto ? <CheckIcon size={16} /> : <XIcon size={16} />}
@@ -124,7 +124,7 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
         {!loading && isPart1 && (
           <button
             onClick={() => onContinue(false)}
-            className="w-full py-4 rounded-2xl bg-vermillion text-white font-ui font-semibold active:scale-95 transition-all"
+            className="pop pop-shadow-jade tilt-r w-full py-4 rounded-2xl bg-vermillion text-white font-display text-sm active:translate-x-[2px] active:translate-y-[2px] transition-transform"
           >
             {t('corr.continueProduction')}
           </button>
@@ -134,14 +134,14 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
             {showPart3Option && (
               <button
                 onClick={() => onContinue(false)}
-                className="w-full py-4 rounded-2xl bg-gold text-white font-ui font-semibold active:scale-95 transition-all"
+                className="pop pop-shadow-coral w-full py-4 rounded-2xl bg-gold text-ink font-display text-sm active:translate-x-[2px] active:translate-y-[2px] transition-transform"
               >
                 {t('corr.continueFree')}
               </button>
             )}
             <button
               onClick={() => onContinue(true)}
-              className="w-full py-4 rounded-2xl bg-ink text-white font-ui font-semibold active:scale-95 transition-all"
+              className="pop w-full py-4 rounded-2xl bg-ink text-white font-display text-sm active:translate-x-[2px] active:translate-y-[2px] transition-transform"
             >
               {showPart3Option ? t('corr.skipFree') : t('corr.finish')}
             </button>

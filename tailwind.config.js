@@ -25,9 +25,15 @@ export default {
         'paper-2': withVar('--surface-2'),
       },
       fontFamily: {
+        // Leitura legível (texto longo em coreano)
         serif: ['"Noto Serif KR"', 'serif'],
-        sans: ['"Noto Sans KR"', 'Inter', 'sans-serif'],
-        ui: ['Inter', '"Noto Sans KR"', 'sans-serif'],
+        // Corpo / UI — Fredoka (arredondada, amigável)
+        sans: ['Fredoka', '"Noto Sans KR"', 'sans-serif'],
+        ui: ['Fredoka', '"Noto Sans KR"', 'sans-serif'],
+        // Títulos coreanos "chunky" estilo Splatoon
+        kr: ['"Black Han Sans"', '"Noto Sans KR"', 'sans-serif'],
+        // Display latino em bloco (etiquetas MAIÚSCULAS, números)
+        display: ['Bungee', 'sans-serif'],
       },
     },
   },

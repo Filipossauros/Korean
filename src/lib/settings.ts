@@ -3,7 +3,17 @@ import { useSyncExternalStore } from 'react'
 
 export type Theme = 'system' | 'light' | 'dark'
 export type Language = 'pt' | 'en'
-export type ClaudeModel = 'claude-sonnet-4-6' | 'claude-opus-4-8' | 'claude-haiku-4-5-20251001'
+// Qualquer id de modelo válido da Anthropic. Livre para suportar modelos
+// futuros sem alterar código (ver MODEL_PRESETS para os sugeridos).
+export type ClaudeModel = string
+
+// Modelos sugeridos na lista. Podes escolher um destes ou escrever outro id
+// no campo "Personalizado" (para novos modelos que saiam mais tarde).
+export const MODEL_PRESETS: { id: string; label: string }[] = [
+  { id: 'claude-sonnet-5', label: 'Sonnet 5 (mais recente)' },
+  { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6 (equilíbrio)' },
+  { id: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5 (mais rápido/barato)' },
+]
 
 export interface AppSettings {
   theme: Theme

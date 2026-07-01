@@ -6,7 +6,7 @@ import {
 } from '../api/google-drive'
 import { exportAllData, importAllData, getSessoes } from '../db'
 import { SettingsIcon, DriveIcon, DownloadIcon, UploadIcon } from './Icons'
-import { useSettings, setSetting } from '../lib/settings'
+import { useSettings, setSetting, MODEL_PRESETS } from '../lib/settings'
 import type { Theme, Language, ClaudeModel } from '../lib/settings'
 import { useT } from '../lib/i18n'
 
@@ -27,6 +27,10 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
   const [restoring, setRestoring] = useState(false)
   const [msg, setMsg] = useState('')
   const conflict = localStorage.getItem('backup_conflict')
+
+  // Modelo: se o valor guardado não estiver nas sugestões, é "personalizado".
+  const isPresetModel = MODEL_PRESETS.some(m => m.id === settings.model)
+  const [customModel, setCustomModel] = useState(!isPresetModel)
 
   const save = async () => {
     if (apiKey.trim()) localStorage.setItem('anthropic_api_key', apiKey.trim())
@@ -205,14 +209,36 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
           <div className={card}>
             <span className={label}>{t('settings.model')}</span>
             <select
-              value={settings.model}
-              onChange={e => setSetting('model', e.target.value as ClaudeModel)}
+              value={customModel ? '__custom__' : settings.model}
+              onChange={e => {
+                const v = e.target.value
+                if (v === '__custom__') {
+                  setCustomModel(true)
+                } else {
+                  setCustomModel(false)
+                  setSetting('model', v as ClaudeModel)
+                }
+              }}
               className="w-full rounded-xl border border-line bg-surface px-3 py-2 font-ui text-sm text-fg focus:outline-none focus:border-gold"
             >
-              <option value="claude-sonnet-4-6">Sonnet 4.6 (equilíbrio)</option>
-              <option value="claude-opus-4-8">Opus 4.8 (melhor qualidade)</option>
-              <option value="claude-haiku-4-5-20251001">Haiku 4.5 (mais rápido/barato)</option>
+              {MODEL_PRESETS.map(m => (
+                <option key={m.id} value={m.id}>{m.label}</option>
+              ))}
+              <option value="__custom__">{t('settings.modelCustom')}</option>
             </select>
+            {customModel && (
+              <input
+                type="text"
+                value={settings.model}
+                onChange={e => setSetting('model', e.target.value as ClaudeModel)}
+                placeholder="claude-…"
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                className="w-full mt-2 rounded-xl border border-line bg-surface px-3 py-2 font-ui text-sm text-fg focus:outline-none focus:border-gold"
+              />
+            )}
+            <p className="text-xs text-fg/40 font-ui mt-2">{t('settings.modelHint')}</p>
           </div>
 
           {/* API Key */}

@@ -1,7 +1,8 @@
 import type { Perfil, Sessao } from '../types'
 import { getSRSDueCount } from '../hooks/useProfile'
+import { promotionEligible, PROMO_SESSOES, PROMO_PONTUACAO, PROMO_DOMINADAS } from '../lib/mastery'
 import { FireIcon, LayersIcon, BookIcon, SpeakerIcon } from './Icons'
-import { PageSplats } from './Splat'
+import { PageSplats, Splat } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -13,17 +14,20 @@ interface Props {
   onNew: () => void
   onNav: (view: string) => void
   onOpenSession: (s: Sessao) => void
+  onPromote: () => void
+  onPostpone: () => void
 }
 
 const inkShadow = { textShadow: '2px 2px 0 rgb(var(--ink-fixed))' }
 
-export function Dashboard({ perfil, sessoes, resumable, onStart, onContinue, onNew, onNav, onOpenSession }: Props) {
+export function Dashboard({ perfil, sessoes, resumable, onStart, onContinue, onNew, onNav, onOpenSession, onPromote, onPostpone }: Props) {
   const t = useT()
   const today = new Date().toISOString().slice(0, 10)
   const didToday = perfil.ultima_sessao.slice(0, 10) === today
   const srsDue = getSRSDueCount(perfil.vocabulario_visto)
   const dominadas = perfil.estruturas.filter(e => e.estado === 'dominada').length
   const emProgresso = perfil.estruturas.filter(e => e.estado === 'em_progresso').length
+  const canPromote = promotionEligible(perfil, sessoes)
 
   const recentSessoes = sessoes.slice(0, 5)
 
@@ -41,6 +45,34 @@ export function Dashboard({ perfil, sessoes, resumable, onStart, onContinue, onN
             {t('common.level')} {perfil.nivel_atual} → {perfil.nivel_seguinte}
           </span>
         </div>
+
+        {/* Proposta de subida de nível — só quando os critérios estão cumpridos */}
+        {canPromote && (
+          <div className="pop pop-shadow-gold tilt-r relative overflow-hidden rounded-2xl bg-jade p-5 mb-6">
+            <Splat size={160} className="pointer-events-none absolute -left-8 -bottom-10 text-gold/25" />
+            <div className="relative z-10">
+              <p className="font-kr text-3xl text-ink leading-none">레벨 업!</p>
+              <p className="font-display text-[11px] text-ink mt-1.5">{t('promo.ready')}</p>
+              <p className="font-ui text-sm text-ink/75 font-medium mt-2">
+                {t('promo.criteria', { s: PROMO_SESSOES, p: PROMO_PONTUACAO, d: PROMO_DOMINADAS, n: perfil.nivel_atual })}
+              </p>
+              <div className="flex gap-2.5 mt-4">
+                <button
+                  onClick={onPromote}
+                  className="pop-sm flex-1 py-3 rounded-xl bg-vermillion text-white font-display text-xs active:translate-x-[2px] active:translate-y-[2px] transition-transform"
+                >
+                  {t('promo.accept', { n: perfil.nivel_seguinte })}
+                </button>
+                <button
+                  onClick={onPostpone}
+                  className="pop-sm py-3 px-4 rounded-xl bg-surface text-fg font-display text-xs active:translate-x-[2px] active:translate-y-[2px] transition-transform"
+                >
+                  {t('promo.later')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-6">

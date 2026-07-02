@@ -62,6 +62,17 @@ const pt: Dict = {
   'prog.grammarStructures': 'Estruturas gramaticais', 'prog.mastered': 'Dominada',
   'prog.toWork': 'Por trabalhar', 'prog.need2': 'Faz pelo menos 2 sessões para ver gráficos',
   'prog.score': 'Pontuação', 'prog.time': 'Tempo',
+  'prog.errorsTitle': 'Erros a trabalhar',
+  'prog.errorsHint': 'As próximas sessões vão atacar isto primeiro.',
+  'prog.dialogueComp': 'Compreensão · diálogos',
+  'promo.ready': 'Pronto para subir de nível',
+  'promo.criteria': '{s} sessões seguidas com ≥ {p}/20 e {d} estruturas dominadas em {n}.',
+  'promo.accept': 'Subir para {n}',
+  'promo.later': 'Mais tarde',
+  'corr.masteredLabel': 'Estrutura dominada',
+  'corr.masteredNote': '3 acertos seguidos + usada na escrita livre. Vai deixar de aparecer nos exercícios.',
+  'corr.loggedTitle': 'Registado no teu perfil',
+  'corr.loggedNote': 'A próxima sessão vai incluir frases que treinam estes pontos.',
   // vocabulário
   'vocab.title': 'Vocabulário SRS', 'vocab.tapToSee': 'toca para ver', 'vocab.allDone': 'Tudo em dia!',
   'vocab.noneToday': 'Sem cartões para hoje.', 'vocab.all': 'Todo o vocabulário',
@@ -138,6 +149,17 @@ const en: Dict = {
   'prog.grammarStructures': 'Grammar structures', 'prog.mastered': 'Mastered',
   'prog.toWork': 'To work on', 'prog.need2': 'Do at least 2 sessions to see charts',
   'prog.score': 'Score', 'prog.time': 'Time',
+  'prog.errorsTitle': 'Errors to work on',
+  'prog.errorsHint': 'Upcoming sessions will target these first.',
+  'prog.dialogueComp': 'Comprehension · dialogues',
+  'promo.ready': 'Ready to level up',
+  'promo.criteria': '{s} sessions in a row with ≥ {p}/20 and {d} structures mastered at {n}.',
+  'promo.accept': 'Move up to {n}',
+  'promo.later': 'Later',
+  'corr.masteredLabel': 'Structure mastered',
+  'corr.masteredNote': '3 correct in a row + used in free writing. It will stop appearing in exercises.',
+  'corr.loggedTitle': 'Logged to your profile',
+  'corr.loggedNote': 'Your next session will include sentences that train these points.',
   'vocab.title': 'SRS Vocabulary', 'vocab.tapToSee': 'tap to flip', 'vocab.allDone': 'All caught up!',
   'vocab.noneToday': 'No cards for today.', 'vocab.all': 'All vocabulary',
   'vocab.none': 'No vocabulary yet', 'vocab.doSession': 'Do a session to start learning words',
@@ -165,13 +187,15 @@ const en: Dict = {
 
 const dicts: Record<Language, Dict> = { pt, en }
 
-export function translate(lang: Language, key: string): string {
-  return dicts[lang][key] ?? pt[key] ?? key
+export function translate(lang: Language, key: string, params?: Record<string, string | number>): string {
+  let s = dicts[lang][key] ?? pt[key] ?? key
+  if (params) for (const [k, v] of Object.entries(params)) s = s.replaceAll(`{${k}}`, String(v))
+  return s
 }
 
 export function useT() {
   const { language } = useSettings()
-  return (key: string) => translate(language, key)
+  return (key: string, params?: Record<string, string | number>) => translate(language, key, params)
 }
 
 // Learning-language helpers (used by AI prompts).

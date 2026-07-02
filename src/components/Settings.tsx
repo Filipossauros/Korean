@@ -10,6 +10,7 @@ import { useSettings, setSetting, MODEL_PRESETS } from '../lib/settings'
 import type { Theme, Language, ClaudeModel } from '../lib/settings'
 import { PageSplats, Splat } from './Splat'
 import { useT } from '../lib/i18n'
+import { LEVELS } from '../lib/mastery'
 
 // Botão de opção: quando selecionado ganha um splat de tinta por trás.
 function OptButton({ active, onClick, activeClass = 'bg-ink text-white', children }: {
@@ -30,8 +31,6 @@ function OptButton({ active, onClick, activeClass = 'bg-ink text-white', childre
     </button>
   )
 }
-
-const LEVELS = ['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B']
 
 interface Props {
   perfil: Perfil
@@ -72,7 +71,7 @@ export function Settings({ perfil, onUpdatePerfil, onRestore }: Props) {
   const setLevel = (nivel: string) => {
     const idx = LEVELS.indexOf(nivel)
     const seguinte = idx >= 0 && idx < LEVELS.length - 1 ? LEVELS[idx + 1] : nivel
-    onUpdatePerfil(p => ({ ...p, nivel_atual: nivel, nivel_seguinte: seguinte }))
+    onUpdatePerfil(p => ({ ...p, nivel_atual: nivel, nivel_seguinte: seguinte, nivel_mudado_em: p.sessoes_realizadas }))
   }
 
   const handleExport = async () => {

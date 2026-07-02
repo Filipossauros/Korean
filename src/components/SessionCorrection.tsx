@@ -1,6 +1,6 @@
 import type { Sessao } from '../types'
 import { CheckIcon, XIcon } from './Icons'
-import { PageSplats } from './Splat'
+import { PageSplats, Splat } from './Splat'
 import { useT } from '../lib/i18n'
 
 interface Props {
@@ -11,6 +11,10 @@ interface Props {
   // 'part1' = só a correção da tradução (com botão "continuar para produção");
   // 'final' = correção completa (Parte 1 + Parte 2) com terminar/escrita livre.
   stage?: 'part1' | 'final'
+  // Deltas desta sessão no perfil (só no stage final): estruturas que passam a
+  // dominadas e categorias de erro registadas.
+  dominadasNovas?: string[]
+  errosRegistados?: { categoria: string; vezes: number }[]
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -22,7 +26,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   'ordem_palavras': 'bg-ink/10 text-fg/70',
 }
 
-export function SessionCorrection({ sessao, showPart3Option, onContinue, loading, stage = 'final' }: Props) {
+export function SessionCorrection({ sessao, showPart3Option, onContinue, loading, stage = 'final', dominadasNovas, errosRegistados }: Props) {
   const t = useT()
   const isPart1 = stage === 'part1'
   const max = isPart1 ? 10 : 20
@@ -114,6 +118,43 @@ export function SessionCorrection({ sessao, showPart3Option, onContinue, loading
             ))}
           </div>
         </div>
+        )}
+
+        {/* Estruturas que passam a dominadas com esta sessão */}
+        {!loading && !isPart1 && (dominadasNovas?.length ?? 0) > 0 && (
+          <div className="pop pop-shadow-coral tilt-r relative overflow-hidden rounded-2xl bg-gold p-4 mb-6">
+            <Splat size={150} className="pointer-events-none absolute -right-9 -top-9 text-vermillion/30" />
+            <div className="relative z-10">
+              <p className="font-kr text-2xl text-ink leading-tight">완전 정복! ✦</p>
+              <p className="font-display text-[10px] text-ink/70 mt-1.5">{t('corr.masteredLabel')}</p>
+              <div className="flex flex-wrap gap-2 mt-2.5">
+                {dominadasNovas!.map(forma => (
+                  <span key={forma} className="pop-sm font-serif text-base px-2.5 py-1 bg-surface text-fg rounded-lg">{forma}</span>
+                ))}
+              </div>
+              <p className="font-ui text-xs text-ink/65 font-medium mt-2.5">{t('corr.masteredNote')}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Erros desta sessão somados ao perfil */}
+        {!loading && !isPart1 && (errosRegistados?.length ?? 0) > 0 && (
+          <div className="pop rounded-2xl bg-surface p-4 mb-6">
+            <p className="font-display text-xs text-fg mb-3">{t('corr.loggedTitle')}</p>
+            <div className="flex flex-wrap gap-2">
+              {errosRegistados!.map(({ categoria, vezes }, i) => (
+                <span
+                  key={categoria}
+                  className={`pop-sm rounded-lg px-2.5 py-1 text-xs font-ui font-semibold ${
+                    i === 0 ? 'bg-vermillion text-white' : 'bg-gold text-ink'
+                  }`}
+                >
+                  +{vezes} {t('cat.' + categoria)}
+                </span>
+              ))}
+            </div>
+            <p className="text-xs text-fg/50 font-ui font-medium mt-3">{t('corr.loggedNote')}</p>
+          </div>
         )}
 
         {loading && (

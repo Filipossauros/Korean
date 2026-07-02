@@ -6,18 +6,15 @@ import { getSettings } from '../lib/settings'
 import { targetLanguageName } from '../lib/i18n'
 import { readingSentences } from '../lib/progression'
 
+import { ApiError } from './errors'
+import {
+  validateSessionDraft, validateDialogo,
+  validateCorrectionP1, validateCorrectionP2, validateFreeWriting
+} from './validate'
+
 const API_URL = 'https://api.anthropic.com/v1/messages'
 
-export class ApiError extends Error {
-  status?: number
-  retryable: boolean
-  constructor(message: string, status?: number, retryable = false) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    this.retryable = retryable
-  }
-}
+export { ApiError }
 
 function getApiKey(): string {
   const key = localStorage.getItem('anthropic_api_key')
@@ -92,47 +89,47 @@ function parseJSON<T>(text: string): T {
 export async function generateSession(perfil: Perfil, unidade: UnidadeKSI): Promise<SessionDraft> {
   const prompt = generateSessionPrompt(perfil, unidade, langName(), readingSentences(perfil))
   const text = await request({ model: model(), max_tokens: 6144, messages: [{ role: 'user', content: prompt }] })
-  return parseJSON<SessionDraft>(text)
+  return validateSessionDraft(parseJSON<SessionDraft>(text))
 }
 
 // Correção rápida só da tradução (Parte 1) — mostrada imediatamente.
 export async function correctTranslation(sessao: Sessao) {
   const prompt = correctTranslationPrompt(sessao, langName())
   const text = await request({ model: model(), max_tokens: 1536, messages: [{ role: 'user', content: prompt }] })
-  return parseJSON<{
+  return validateCorrectionP1(parseJSON<{
     pontuacao: number
     correcao: string
     erros: Sessao['parte1']['erros']
-  }>(text)
+  }>(text)) as { pontuacao: number; correcao: string; erros: Sessao['parte1']['erros'] }
 }
 
 // Correção só da produção (Parte 2).
 export async function correctProduction(sessao: Sessao) {
   const prompt = correctProductionPrompt(sessao, langName())
   const text = await request({ model: model(), max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
-  return parseJSON<{
+  return validateCorrectionP2(parseJSON<{
     pontuacao: number
     frases: { correcto: boolean; nota: string; categoria_erro: string }[]
     estruturas_praticadas: string[]
-  }>(text)
+  }>(text), sessao.parte2.frases.length)
 }
 
 export async function generateDialogue(nivel: string, unidade: UnidadeKSI, turns?: string): Promise<Dialogo> {
   const prompt = generateDialoguePrompt(nivel, unidade, langName(), turns)
   const text = await request({ model: model(), max_tokens: 6144, messages: [{ role: 'user', content: prompt }] })
-  return parseJSON<Dialogo>(text)
+  return validateDialogo(parseJSON<Dialogo>(text))
 }
 
 export async function correctFreeWriting(tema: string, texto: string, nivel: string) {
   const prompt = correctFreeWritingPrompt(tema, texto, nivel, langName())
   const text = await request({ model: model(), max_tokens: 2048, messages: [{ role: 'user', content: prompt }] })
-  return parseJSON<{
+  return validateFreeWriting(parseJSON<{
     correcao: string
     estruturas_usadas: string[]
     estruturas_espontaneas: string[]
     erros: { original: string; correcto: string; nota: string }[]
     nota_geral: string
-  }>(text)
+  }>(text))
 }
 
 // OCR de manuscrito Hangul via Claude Vision (mais preciso que Tesseract).

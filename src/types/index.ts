@@ -7,6 +7,14 @@ export interface Perfil {
   vocabulario_visto: VocabItem[]
   erros_recorrentes: ErroItem[]
   sessoes_realizadas: number
+  // Nº de sessões realizadas quando o utilizador adiou a última proposta de
+  // subida de nível — a proposta volta a aparecer após mais uma sessão.
+  promo_adiada_em?: number
+  // Nº de sessões realizadas quando o nível mudou pela última vez — a próxima
+  // proposta exige um novo ciclo de sessões já no nível novo.
+  nivel_mudado_em?: number
+  // Acumulado dos quizzes de compreensão dos diálogos.
+  dialogos?: { perguntas: number; certas: number }
 }
 
 export interface EstruturaItem {

@@ -29,6 +29,9 @@ export function Progress({ sessoes, perfil }: Props) {
   const emProgresso = perfil.estruturas.filter(e => e.estado === 'em_progresso').length
   const totalVocab = perfil.vocabulario_visto.length
   const consolidado = perfil.vocabulario_visto.filter(v => v.srs_nivel === 3).length
+  const dlg = perfil.dialogos
+  const dlgPct = dlg && dlg.perguntas > 0 ? Math.round((dlg.certas / dlg.perguntas) * 100) : null
+  const erros = perfil.erros_recorrentes
 
   return (
     <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
@@ -50,6 +53,7 @@ export function Progress({ sessoes, perfil }: Props) {
             { label: t('prog.structMastered'), value: dominadas, color: 'text-jade' },
             { label: t('prog.inProgress'), value: emProgresso, color: 'text-gold' },
             { label: t('prog.currentStreak'), value: perfil.streak, color: 'text-vermillion' },
+            ...(dlgPct !== null ? [{ label: t('prog.dialogueComp'), value: `${dlgPct}%`, color: 'text-vermillion' }] : []),
           ].map(({ label, value, color }) => (
             <div key={label} className="pop rounded-2xl bg-surface p-4">
               <p className={`text-3xl font-display ${color}`}>{value}</p>
@@ -57,6 +61,28 @@ export function Progress({ sessoes, perfil }: Props) {
             </div>
           ))}
         </div>
+
+        {/* Erros recorrentes — agregados das correções, alimentam o prompt */}
+        {erros.length > 0 && (
+          <div className="pop tilt-r rounded-2xl bg-surface p-4 mb-6">
+            <h2 className="font-display text-xs text-fg mb-1">{t('prog.errorsTitle')}</h2>
+            <p className="text-xs text-fg/50 font-ui font-medium mb-3">{t('prog.errorsHint')}</p>
+            <div className="flex flex-wrap gap-2">
+              {erros.slice(0, 6).map((e, i) => (
+                <span
+                  key={e.estrutura}
+                  className={`pop-sm rounded-lg px-2.5 py-1 text-sm font-ui font-semibold ${
+                    i === 0 ? 'bg-vermillion text-white' :
+                    e.vezes > 1 ? 'bg-gold text-ink' :
+                    'bg-surface text-fg/60'
+                  }`}
+                >
+                  {t('cat.' + e.estrutura)} ×{e.vezes}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {sessoes.length > 1 ? (
           <>
@@ -108,12 +134,25 @@ export function Progress({ sessoes, perfil }: Props) {
               {perfil.estruturas.map(e => (
                 <div key={e.forma} className="flex items-center justify-between gap-2">
                   <span className="font-kr text-sm text-fg">{e.forma}</span>
-                  <span className={`pop-sm text-[10px] px-2 py-0.5 rounded-lg font-display shrink-0 ${
-                    e.estado === 'dominada' ? 'bg-jade text-ink' :
-                    e.estado === 'em_progresso' ? 'bg-gold text-ink' :
-                    'bg-surface-2 text-fg/50'
-                  }`}>
-                    {e.estado === 'dominada' ? t('prog.mastered') : e.estado === 'em_progresso' ? t('prog.inProgress') : t('prog.toWork')}
+                  <span className="flex items-center gap-2.5 shrink-0">
+                    {/* Bolinhas: acertos consecutivos rumo ao domínio (3) */}
+                    <span className="flex gap-1">
+                      {[0, 1, 2].map(i => (
+                        <span
+                          key={i}
+                          className={`w-3 h-3 rounded-full border-2 border-ink inline-block ${
+                            e.estado === 'dominada' || i < Math.min(e.acertos_consecutivos, 3) ? 'bg-jade' : 'bg-paper'
+                          }`}
+                        />
+                      ))}
+                    </span>
+                    <span className={`pop-sm text-[10px] px-2 py-0.5 rounded-lg font-display ${
+                      e.estado === 'dominada' ? 'bg-jade text-ink' :
+                      e.estado === 'em_progresso' ? 'bg-gold text-ink' :
+                      'bg-surface-2 text-fg/50'
+                    }`}>
+                      {e.estado === 'dominada' ? t('prog.mastered') : e.estado === 'em_progresso' ? `${Math.min(e.acertos_consecutivos, 3)}/3` : t('prog.toWork')}
+                    </span>
                   </span>
                 </div>
               ))}

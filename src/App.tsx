@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import type { AppView, Sessao } from './types'
 import { useProfile } from './hooks/useProfile'
 import { useSession } from './hooks/useSession'
@@ -17,7 +17,6 @@ import { SessionWriting } from './components/SessionWriting'
 import { SessionCorrection } from './components/SessionCorrection'
 import { FreeWriting } from './components/FreeWriting'
 import { Vocabulary } from './components/Vocabulary'
-import { Progress } from './components/Progress'
 import { Settings } from './components/Settings'
 import { Welcome } from './components/Welcome'
 import { LoadingOverlay } from './components/LoadingOverlay'
@@ -26,10 +25,14 @@ import { Dialogue } from './components/Dialogue'
 import { useT } from './lib/i18n'
 import { useSettings } from './lib/settings'
 import { hasInProgress } from './lib/sessionStore'
+import { applySessionToPerfil, previewSessionDeltas, promote, postponePromotion } from './lib/mastery'
 import {
   HomeIcon, LayersIcon, BarChartIcon, SettingsIcon, SpeakerIcon
 } from './components/Icons'
 import { Splat } from './components/Splat'
+
+// O recharts (só usado no Progresso) domina o bundle — carrega sob demanda.
+const Progress = lazy(() => import('./components/Progress').then(m => ({ default: m.Progress })))
 
 export default function App() {
   const [view, setView] = useState<AppView>('dashboard')
@@ -90,30 +93,9 @@ export default function App() {
     else if (session.phase === 'done') {
       const finished = session.sessao
       if (finished) {
-        const today = new Date().toISOString().slice(0, 10)
-        const lastDay = perfil.ultima_sessao.slice(0, 10)
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-        const newStreak = lastDay === yesterday ? perfil.streak + 1 : lastDay === today ? perfil.streak : 1
-        const existingKr = new Set(perfil.vocabulario_visto.map(v => v.kr))
-        const newVocab = finished.vocabulario_novo.filter(v => !existingKr.has(v.kr))
-        const existingFormas = new Set(perfil.estruturas.map(e => e.forma))
-        const newEstruturas = finished.estruturas_praticadas
-          .filter(f => !existingFormas.has(f))
-          .map(f => ({
-            forma: f,
-            estado: 'em_progresso' as const,
-            acertos_consecutivos: 0,
-            apareceu_em_livre: false,
-            ultima_vez: today,
-          }))
-        const updated = {
-          ...perfil,
-          streak: newStreak,
-          ultima_sessao: new Date().toISOString(),
-          sessoes_realizadas: perfil.sessoes_realizadas + 1,
-          vocabulario_visto: [...perfil.vocabulario_visto, ...newVocab],
-          estruturas: [...perfil.estruturas, ...newEstruturas],
-        }
+        // Motor pedagógico: estruturas (acertos consecutivos → domínio),
+        // erros recorrentes, vocabulário e streak num só sítio testável.
+        const { perfil: updated } = applySessionToPerfil(perfil, finished)
         setPerfil(() => updated)
         // A sessão já foi gravada no IndexedDB; lê a lista fresca (que inclui a
         // sessão acabada de terminar) e só depois faz backup ao Drive.
@@ -152,6 +134,18 @@ export default function App() {
     setView('dashboard')
   }
 
+  const handlePromote = () => setPerfil(p => promote(p))
+  const handlePostpone = () => setPerfil(p => postponePromotion(p))
+
+  const handleDialogueQuiz = (certas: number, total: number) =>
+    setPerfil(p => ({
+      ...p,
+      dialogos: {
+        perguntas: (p.dialogos?.perguntas ?? 0) + total,
+        certas: (p.dialogos?.certas ?? 0) + certas,
+      },
+    }))
+
   const showPart3 = perfil.sessoes_realizadas > 0 && (perfil.sessoes_realizadas + 1) % 3 === 0
 
   if (loading || startup === 'init') return <LoadingOverlay message={t('common.loading')} />
@@ -179,6 +173,8 @@ export default function App() {
           onNew={handleNewSession}
           onNav={v => setView(v as AppView)}
           onOpenSession={s => { setDetailSession(s); setView('session-detail') }}
+          onPromote={handlePromote}
+          onPostpone={handlePostpone}
         />
       case 'session-reading':
         return session.draft ? (
@@ -191,12 +187,17 @@ export default function App() {
         ) : null
       case 'session-correction': {
         const isPart1Stage = session.phase === 'correcting1' || session.phase === 'review1'
+        const deltas = !isPart1Stage && session.phase === 'review2' && session.sessao
+          ? previewSessionDeltas(perfil, session.sessao)
+          : undefined
         return session.sessao ? (
           <SessionCorrection
             sessao={session.sessao}
             stage={isPart1Stage ? 'part1' : 'final'}
             showPart3Option={showPart3}
             loading={session.phase === 'correcting1' || session.phase === 'correcting2'}
+            dominadasNovas={deltas?.dominadasNovas}
+            errosRegistados={deltas?.errosRegistados}
             onContinue={isPart1Stage
               ? () => session.continueToPart2()
               : skip => session.finishSession(skip, showPart3)}
@@ -212,7 +213,7 @@ export default function App() {
           />
         ) : null
       case 'dialogue':
-        return <Dialogue nivel={perfil.nivel_atual} perfil={perfil} />
+        return <Dialogue nivel={perfil.nivel_atual} perfil={perfil} onQuizDone={handleDialogueQuiz} />
       case 'free-writing':
         return session.sessao ? (
           <FreeWriting
@@ -224,7 +225,11 @@ export default function App() {
       case 'vocabulary':
         return <Vocabulary perfil={perfil} onUpdate={setPerfil} />
       case 'progress':
-        return <Progress sessoes={sessoes} perfil={perfil} />
+        return (
+          <Suspense fallback={<LoadingOverlay message={t('common.loading')} />}>
+            <Progress sessoes={sessoes} perfil={perfil} />
+          </Suspense>
+        )
       case 'settings':
         return <Settings perfil={perfil} onUpdatePerfil={setPerfil} onRestore={() => { reload(); refreshSessoes() }} />
       case 'session-detail':

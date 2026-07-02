@@ -11,7 +11,14 @@ import { loadDialogue, saveDialogue } from '../lib/dialogueStore'
 import { SpeakerIcon, MessageIcon, CheckIcon, XIcon } from './Icons'
 import { PageSplats } from './Splat'
 
-export function Dialogue({ nivel, perfil }: { nivel: string; perfil: Perfil }) {
+interface DialogueProps {
+  nivel: string
+  perfil: Perfil
+  // Chamado uma vez por quiz avaliado, para acumular no perfil.
+  onQuizDone?: (certas: number, total: number) => void
+}
+
+export function Dialogue({ nivel, perfil, onQuizDone }: DialogueProps) {
   const t = useT()
   const { romanization } = useSettings()
   // Retoma o diálogo em curso (guardado ao navegar para fora / fechar a app).
@@ -76,7 +83,12 @@ export function Dialogue({ nivel, perfil }: { nivel: string; perfil: Perfil }) {
   const allAnswered = hasQuiz && perguntas.every((_, i) => answers[i] !== undefined)
   const score = graded ? perguntas.reduce((n, q, i) => n + (answers[i] === q.correta ? 1 : 0), 0) : 0
 
-  const submitQuiz = () => { setGraded(true); setUnlocked(true) }
+  const submitQuiz = () => {
+    setGraded(true)
+    setUnlocked(true)
+    const certas = perguntas.reduce((n, q, i) => n + (answers[i] === q.correta ? 1 : 0), 0)
+    onQuizDone?.(certas, perguntas.length)
+  }
 
   return (
     <div className="relative min-h-screen bg-paper pb-24 md:pb-0 overflow-hidden">
